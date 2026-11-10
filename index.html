@@ -137,8 +137,8 @@ input:focus-visible, select:focus-visible { outline: none; border-color: var(--c
 .ax { stroke: var(--line); stroke-width: 1; }
 .axt { fill: var(--muted); font-size: 11px; font-family: var(--font-body); }
 .ln { fill: none; stroke: url(#lnGrad); stroke-width: 3.5; stroke-linejoin: round; stroke-linecap: round; }
-.gl { stroke: var(--pink); stroke-dasharray: 5 5; stroke-width: 1.5; }
-.glt { fill: var(--pink-ink); font-size: 11.5px; font-weight: 600; font-family: var(--font-body); }
+.gl { stroke: var(--lime-ink); stroke-dasharray: 5 5; stroke-width: 1.5; }
+.glt { fill: var(--lime-ink); font-size: 11.5px; font-weight: 600; font-family: var(--font-body); }
 .dot { fill: var(--surface); stroke: var(--cyan); stroke-width: 3; }
 .dot.end { stroke: var(--lime-ink); fill: var(--lime); }
 @media (prefers-reduced-motion: no-preference) {
@@ -228,6 +228,34 @@ tbody tr:last-child td:first-child { color: var(--lime-ink); font-weight: 600; }
 .loglist .empty { color: var(--muted); }
 .xbtn { font: inherit; border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 1.15rem; line-height: 1; padding: 2px 6px; border-radius: 6px; }
 .xbtn:hover { color: var(--pink-ink); }
+.subh { font-family: var(--font-display); font-size: 0.98rem; font-weight: 600; margin: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.chip { font: inherit; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); border-radius: 999px; padding-block: 6px; padding-inline: 14px 6px; cursor: pointer; font-size: 0.88rem; font-weight: 500; transition: border-color .15s, transform .12s, background .2s, color .2s; }
+.chip b { background: var(--surface); color: var(--lime-ink); border-radius: 999px; padding: 1px 9px; font-size: 0.78rem; font-variant-numeric: tabular-nums; }
+.chip:hover { border-color: var(--lime-ink); }
+.chip:active { transform: scale(.96); }
+.chip.added { background: var(--lime); color: var(--on-lime); border-color: var(--lime); }
+.manual { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto; gap: 10px; align-items: end; }
+@media (max-width: 520px) { .manual { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .manual .btn { grid-column: 1 / -1; } }
+.water { background: var(--surface-2); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.water-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.water-head span { font-size: .88rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.cups { display: flex; flex-wrap: wrap; gap: 8px; }
+.cup { width: 42px; height: 50px; border-radius: 10px 10px 14px 14px; border: 2px solid var(--line); background: transparent; cursor: pointer; display: grid; place-items: center; color: var(--muted); transition: background .2s, border-color .2s, color .2s; }
+.cup svg { width: 20px; height: 20px; }
+.cup.on { background: color-mix(in srgb, var(--cyan) 22%, transparent); border-color: var(--cyan); color: var(--cyan-ink); }
+.cup:focus-visible, .chip:focus-visible, .linkbtn:focus-visible { outline: 2px solid var(--cyan-ink); outline-offset: 2px; }
+.wlog { display: flex; flex-direction: column; gap: 10px; background: var(--surface-2); border-radius: 18px; padding: 16px; }
+.wlog input { background: var(--surface); }
+.wlog-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end; }
+.wlog .loglist .kc { color: var(--pink-ink); }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.8rem; color: var(--muted); }
+.legend i { display: inline-block; width: 18px; height: 4px; border-radius: 2px; vertical-align: middle; margin-inline-end: 6px; }
+.linkbtn { font: inherit; background: none; border: 0; color: var(--muted); text-decoration: underline; cursor: pointer; font-size: .82rem; align-self: flex-start; padding: 2px 0; }
+.linkbtn.confirm { color: var(--pink-ink); }
+.act-line { fill: none; stroke: var(--pink); stroke-width: 2.5; stroke-linejoin: round; }
+.act-dot { fill: var(--pink); stroke: var(--surface); stroke-width: 2; }
+.adj { color: var(--lime-ink); font-weight: 600; font-size: 0.92rem; }
 footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 </style>
@@ -264,7 +292,7 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
         <div class="field"><label for="height">الطول <span class="unit">سم</span></label><input type="number" id="height" min="130" max="230" value="175"></div>
       </div>
       <div class="row2">
-        <div class="field"><label for="weight">الوزن الحالي <span class="unit">كغ</span></label><input type="number" id="weight" min="35" max="300" step="0.1" value="92"></div>
+        <div class="field"><label for="weight">وزن البداية <span class="unit">كغ</span></label><input type="number" id="weight" min="35" max="300" step="0.1" value="92"></div>
         <div class="field"><label for="goal">الوزن المستهدف <span class="unit">كغ</span></label><input type="number" id="goal" min="35" max="300" step="0.1" value="78"></div>
       </div>
       <div class="field">
@@ -293,7 +321,7 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
     <div class="results">
       <section class="hero" aria-live="polite">
         <div class="hero-main">
-          <span class="k">هدفك اليومي في الشهر الأول</span>
+          <span class="k">هدفك اليومي الحين</span>
           <div class="hero-num"><span class="v" id="o-target">–</span><small>سعرة / يوم</small></div>
           <p class="goalline" id="o-goal"></p>
         </div>
@@ -334,6 +362,10 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
           </div>
         </div>
         <div class="snap-out" id="snap-out" hidden></div>
+      </section>
+
+      <section class="panel" id="today">
+        <h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>يومك اليوم</h2>
         <div class="daylog">
           <div class="ring" id="ring">
             <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="bgc" cx="60" cy="60" r="52"/><circle class="fgc" id="ring-fg" cx="60" cy="60" r="52" pathLength="100" stroke-dasharray="0 100"/></svg>
@@ -345,11 +377,39 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
             <ul class="loglist" id="log-list"></ul>
           </div>
         </div>
+        <div>
+          <h3 class="subh">أضف بضغطة</h3>
+          <div class="chips" id="quick"></div>
+        </div>
+        <div class="manual">
+          <div class="field"><label for="m-name">أكلة أخرى</label><input type="text" id="m-name" maxlength="60" placeholder="مثال: صحن مكرونة بالدجاج"></div>
+          <div class="field"><label for="m-kcal">السعرات</label><input type="number" id="m-kcal" min="1" max="5000" placeholder="450"></div>
+          <button type="button" class="btn" id="m-add">أضف</button>
+        </div>
+        <p class="snap-msg" id="m-msg" aria-live="polite"></p>
+        <div class="water">
+          <div class="water-head"><h3 class="subh">الماء</h3><span id="water-sum"></span></div>
+          <div class="cups" id="cups"></div>
+        </div>
       </section>
 
       <section class="panel">
         <h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-5 4 4 8-8"/><path d="M15 8h5v5"/></svg>منحنى الوزن المتوقع</h2>
         <div class="chart-box"><svg id="chart" viewBox="0 0 640 270" role="img" aria-label="منحنى الوزن المتوقع أسبوعاً بأسبوع"></svg></div>
+        <div class="legend">
+          <span><i style="background:var(--cyan)"></i>الوزن المتوقع</span>
+          <span><i style="background:var(--pink)"></i>وزنك الفعلي</span>
+          <span><i style="background:var(--lime-ink);height:2px"></i>الهدف</span>
+        </div>
+        <div class="wlog">
+          <div class="wlog-form">
+            <div class="field"><label for="w-today">وزنك اليوم <span class="unit">كغ</span></label><input type="number" id="w-today" min="35" max="300" step="0.1" placeholder="91.4"></div>
+            <button type="button" class="btn primary" id="w-add">سجّل وزني</button>
+          </div>
+          <p class="hint" id="w-status"></p>
+          <ul class="loglist" id="w-list"></ul>
+          <button type="button" class="linkbtn" id="w-reset">ابدأ خطة جديدة من اليوم</button>
+        </div>
         <div class="tbl">
           <table>
             <thead><tr><th>المرحلة</th><th>الأسبوع</th><th>الوزن المتوقع</th><th>السعرات اليومية</th></tr></thead>
@@ -481,8 +541,9 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
     const svg = $('chart');
     const W = 640, H = 270, L = 48, R = 20, T = 20, B = 36;
     const pts = sim.pts;
-    const maxWk = Math.max(pts[pts.length - 1].wk, 4);
-    const ws = pts.map((p) => p.w);
+    const actual = weightLog.map((e) => ({ wk: wkOf(e.d), w: e.w }));
+    const maxWk = Math.max(pts[pts.length - 1].wk, 4, ...actual.map((a) => a.wk));
+    const ws = pts.map((p) => p.w).concat(actual.map((a) => a.w));
     let lo = Math.min(...ws, s.goal), hi = Math.max(...ws, s.goal);
     const pad = Math.max((hi - lo) * 0.15, 1.5);
     const yStep = niceStep(hi - lo + pad * 2, 5);
@@ -511,6 +572,8 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
     out += '<path class="ln' + (chartDrawn ? '' : ' draw') + '" pathLength="1" d="' + line + '"/>';
     out += '<circle class="dot" cx="' + x(0) + '" cy="' + y(pts[0].w) + '" r="5"/>';
     out += '<circle class="dot end" cx="' + x(last.wk) + '" cy="' + y(last.w) + '" r="6"/>';
+    if (actual.length > 1) out += '<polyline class="act-line" points="' + actual.map((a) => x(a.wk).toFixed(1) + ',' + y(a.w).toFixed(1)).join(' ') + '"/>';
+    actual.forEach((a) => { out += '<circle class="act-dot" cx="' + x(a.wk).toFixed(1) + '" cy="' + y(a.w).toFixed(1) + '" r="5"/>'; });
     svg.innerHTML = out;
     chartDrawn = true;
   }
@@ -537,7 +600,9 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
 
     const bmr = bmrOf(s, s.w), tdee = bmr * s.act;
     const sim = simulate(s);
-    const target = r10(sim.pts[0].kcal);
+    const ad = adaptive(sim);
+    let target = r10(kcalAt(sim, s, wkOf(Date.now())) + ad.kcal);
+    if (sim.dir < 0) target = Math.max(sim.floor, target);
     const bmi = s.w / Math.pow(s.h / 100, 2);
     const goalBmi = s.goal / Math.pow(s.h / 100, 2);
 
@@ -562,6 +627,12 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
     } else {
       $('o-goal').innerHTML = 'بهذه السرعة لن يصل المنحنى للهدف خلال 3 سنوات. جرّب سرعة أعلى أو زد نشاطك.';
     }
+    if (ad.kcal !== 0) $('o-goal').innerHTML += '<br><span class="adj">' + esc(ad.msg) + '</span>';
+    const wl = weightLog[weightLog.length - 1];
+    $('w-status').textContent = wl
+      ? 'آخر وزن ' + fmt(wl.w, 1) + ' كغ، والمتوقع في نفس اليوم ' + fmt(weightAt(sim, wkOf(wl.d)), 1) + ' كغ. ' + ad.msg
+      : 'سجّل وزنك مرة في الأسبوع صباحاً، وبيطلع على المنحنى باللون الوردي، ونعدّل سعراتك على حسب تقدمك.';
+    renderWList();
 
     const msgs = [];
     if (sim.clamped) msgs.push('خفّضنا العجز حتى لا تنزل سعراتك عن ' + fmt(sim.floor) + ' سعرة يومياً، وهو الحد الأدنى الآمن تقريباً. لهذا قد يكون التقدم أبطأ من السرعة التي اخترتها، وزيادة النشاط تساعدك على تسريعه.');
@@ -616,6 +687,8 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
       ['cal', 'كل 4 أسابيع', 'ارجع لهذه الصفحة وأدخل وزنك الجديد لتحديث سعراتك.']
     ];
     $('o-habits').innerHTML = habits.map((h) => '<li><div class="hi">' + ico(h[0]) + '</div><div><b>' + h[1] + '</b><span>' + h[2] + '</span></div></li>').join('');
+    waterGoal = Math.max(4, Math.round(water / 0.25));
+    renderWater();
   }
 
   // ---------- meal photo analysis + daily log ----------
@@ -643,6 +716,121 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
   $('log-list').addEventListener('click', (e) => {
     const b = e.target.closest('.xbtn'); if (!b) return;
     mealLog.splice(+b.dataset.i, 1); saveLog(); renderLog();
+  });
+
+  // ---------- weight log: actual vs plan, with auto adjustment ----------
+  const WEEK = 7 * 864e5;
+  const dayStart = (t) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+  let planStart = dayStart(Date.now());
+  try { const v = Number(localStorage.getItem('plan-start')); if (v > 0) planStart = v; else localStorage.setItem('plan-start', String(planStart)); } catch (e) {}
+  let weightLog = [];
+  try { weightLog = JSON.parse(localStorage.getItem('weight-log') || '[]'); if (!Array.isArray(weightLog)) weightLog = []; } catch (e) { weightLog = []; }
+  weightLog = weightLog.filter((e) => e && isFinite(e.d) && isFinite(e.w)).sort((a, b) => a.d - b.d);
+  function saveW() { try { localStorage.setItem('weight-log', JSON.stringify(weightLog)); localStorage.setItem('plan-start', String(planStart)); } catch (e) {} }
+  const wkOf = (t) => Math.max(0, (t - planStart) / WEEK);
+  function weightAt(sim, t) {
+    const p = sim.pts;
+    if (t <= 0) return p[0].w;
+    for (let i = 1; i < p.length; i++) {
+      if (p[i].wk >= t) { const a = p[i - 1], b = p[i]; return a.w + (b.w - a.w) * (t - a.wk) / ((b.wk - a.wk) || 1); }
+    }
+    return p[p.length - 1].w;
+  }
+  function kcalAt(sim, s, t) {
+    const p = sim.pts;
+    if (sim.dir === 0) return p[0].kcal;
+    for (let i = 1; i < p.length; i++) if (p[i].wk >= t) return p[i].kcal;
+    return bmrOf(s, p[p.length - 1].w) * s.act;
+  }
+  function adaptive(sim) {
+    if (sim.dir === 0 || weightLog.length < 2) return { kcal: 0, msg: '' };
+    const first = weightLog[0], last = weightLog[weightLog.length - 1];
+    const spanWk = (last.d - first.d) / WEEK;
+    if (spanWk < 2) return { kcal: 0, msg: 'سجّل وزنك أسبوعين على الأقل حتى نقارن تقدمك بالخطة.' };
+    const actualRate = (last.w - first.w) / spanWk;
+    const expRate = (weightAt(sim, wkOf(last.d)) - weightAt(sim, wkOf(first.d))) / spanWk;
+    const gap = actualRate - expRate;
+    if (Math.abs(gap) < 0.1) return { kcal: 0, msg: 'تقدمك مطابق للخطة، استمر.' };
+    const kcal = Math.max(-250, Math.min(250, Math.round(-gap * 1100 / 10) * 10));
+    let msg;
+    if (sim.dir < 0) msg = kcal < 0 ? 'وزنك ينزل أبطأ من الخطة، فخفّضنا هدفك ' + fmt(-kcal) + ' سعرة.' : 'وزنك ينزل أسرع من الخطة، فزدنا هدفك ' + fmt(kcal) + ' سعرة حتى تحافظ على عضلاتك.';
+    else msg = kcal < 0 ? 'وزنك يزيد أسرع من الخطة، فخفّضنا هدفك ' + fmt(-kcal) + ' سعرة.' : 'وزنك يزيد أبطأ من الخطة، فزدنا هدفك ' + fmt(kcal) + ' سعرة.';
+    return { kcal, msg };
+  }
+  function renderWList() {
+    $('w-list').innerHTML = weightLog.map((e, i) => '<li><span>' + new Date(e.d).toLocaleDateString('ar-u-nu-latn', { weekday: 'long', day: 'numeric', month: 'long' }) + '</span><span class="kc">' + fmt(e.w, 1) + ' كغ</span><button type="button" class="xbtn" data-i="' + i + '" aria-label="حذف هذا الوزن">×</button></li>').reverse().join('');
+  }
+  $('w-add').addEventListener('click', () => {
+    const v = parseFloat($('w-today').value);
+    if (!isFinite(v) || v < 35 || v > 300) { $('w-status').textContent = 'اكتب وزنك بين 35 و300 كغ.'; return; }
+    const d = dayStart(Date.now());
+    weightLog = weightLog.filter((e) => e.d !== d);
+    weightLog.push({ d, w: Math.round(v * 10) / 10 });
+    weightLog.sort((a, b) => a.d - b.d);
+    saveW(); $('w-today').value = ''; render();
+  });
+  $('w-today').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $('w-add').click(); } });
+  $('w-list').addEventListener('click', (e) => {
+    const b = e.target.closest('.xbtn'); if (!b) return;
+    weightLog.splice(+b.dataset.i, 1); saveW(); render();
+  });
+  let resetArmed = false, resetTimer = 0;
+  $('w-reset').addEventListener('click', () => {
+    const b = $('w-reset');
+    const disarm = () => { resetArmed = false; b.textContent = 'ابدأ خطة جديدة من اليوم'; b.classList.remove('confirm'); };
+    if (!resetArmed) {
+      resetArmed = true; b.textContent = 'اضغط مرة ثانية لمسح سجل الوزن والبدء من اليوم'; b.classList.add('confirm');
+      clearTimeout(resetTimer); resetTimer = setTimeout(disarm, 5000);
+      return;
+    }
+    clearTimeout(resetTimer); disarm();
+    planStart = dayStart(Date.now()); weightLog = []; saveW(); render();
+    $('w-status').textContent = 'بدأت خطة جديدة من اليوم. حدّث وزن البداية في بياناتك.';
+  });
+
+  // ---------- one-tap foods + manual entry ----------
+  const QUICK = [
+    ['3 تمرات', 70], ['قهوة عربية 3 فناجيل', 10], ['كوب شاي بسكر', 35], ['صحن كبسة دجاج', 550],
+    ['صحن مندي لحم', 700], ['ساندويتش شاورما دجاج', 450], ['5 حبات لقيمات', 300], ['2 سمبوسة مقلية', 260],
+    ['صحن فول بالزيت', 300], ['خبز تميس', 300], ['مطبق لحم', 450], ['صحن حمص', 250],
+    ['كوب لبن', 110], ['كوب حليب كامل', 150], ['بيضة مسلوقة', 75], ['سلطة بزيت زيتون', 150],
+    ['تفاحة', 95], ['موزة', 105]
+  ];
+  $('quick').innerHTML = QUICK.map((q, i) => '<button type="button" class="chip" data-i="' + i + '"><span>' + q[0] + '</span><b>' + fmt(q[1]) + '</b></button>').join('');
+  function addMeal(name, kcal) { mealLog.push({ name, kcal, t: Date.now() }); saveLog(); renderLog(); }
+  function mMsg(t, err) { const m = $('m-msg'); m.textContent = t; m.classList.toggle('err', !!err); }
+  $('quick').addEventListener('click', (e) => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    const q = QUICK[+b.dataset.i];
+    addMeal(q[0], q[1]);
+    b.classList.add('added'); setTimeout(() => b.classList.remove('added'), 700);
+    mMsg('أضيفت: ' + q[0] + ' (' + fmt(q[1]) + ' سعرة)');
+  });
+  $('m-add').addEventListener('click', () => {
+    const n = $('m-name').value.trim().slice(0, 60);
+    const k = Math.round(parseFloat($('m-kcal').value));
+    if (!n || !isFinite(k) || k < 1 || k > 5000) { mMsg('اكتب اسم الأكلة وسعراتها (من 1 إلى 5000).', true); return; }
+    addMeal(n, k); $('m-name').value = ''; $('m-kcal').value = '';
+    mMsg('أضيفت: ' + n + ' (' + fmt(k) + ' سعرة)');
+  });
+
+  // ---------- water cups ----------
+  let waterGoal = 12, waterCount = 0;
+  const waterKey = () => 'water-' + todayKey().slice(9);
+  try { waterCount = Math.max(0, Number(localStorage.getItem(waterKey())) || 0); } catch (e) {}
+  function renderWater() {
+    const n = Math.max(waterGoal, waterCount) + (waterCount >= waterGoal ? 1 : 0);
+    let h = '';
+    for (let i = 0; i < n; i++) h += '<button type="button" class="cup' + (i < waterCount ? ' on' : '') + '" data-i="' + i + '" aria-label="كوب ' + (i + 1) + '" aria-pressed="' + (i < waterCount) + '">' + ico('drop') + '</button>';
+    $('cups').innerHTML = h;
+    $('water-sum').textContent = fmt(waterCount) + ' من ' + fmt(waterGoal) + ' أكواب · ' + fmt(waterCount * 0.25, 2) + ' لتر';
+  }
+  $('cups').addEventListener('click', (e) => {
+    const b = e.target.closest('.cup'); if (!b) return;
+    const i = +b.dataset.i;
+    waterCount = (i + 1 === waterCount) ? i : i + 1;
+    try { localStorage.setItem(waterKey(), String(waterCount)); } catch (err) {}
+    renderWater();
   });
 
   const samplePromise = window.claude ? window.claude.use('sample').catch(() => null) : Promise.resolve(null);
