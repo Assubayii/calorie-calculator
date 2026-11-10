@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>ميزان السعرات</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Readex+Pro:wght@400;600;700&display=swap">
+<style>
+/* Layout: form column on the right (RTL), results column on the left; stacks to one column on phones */
+:root {
+  --bg: #F3F5F1;
+  --surface: #FFFFFF;
+  --fg: #1B2420;
+  --muted: #5E6B64;
+  --line: #DDE3DC;
+  --accent: #2E7A57;
+  --accent-soft: #E1EFE7;
+  --protein: #3D6DB0;
+  --carb: #D9A23B;
+  --fat: #C8644A;
+  --warn: #A5561D;
+  --warn-soft: #FBEEDF;
+  --font-display: "Readex Pro", "Segoe UI", Tahoma, sans-serif;
+  --font-body: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121815; --surface: #1A221E; --fg: #E6ECE8; --muted: #9AA8A0; --line: #2C3832;
+    --accent: #5FC08F; --accent-soft: #1E3328; --protein: #7FA6E0; --carb: #E8BC62; --fat: #E58B73;
+    --warn: #F0A867; --warn-soft: #33261A; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121815; --surface: #1A221E; --fg: #E6ECE8; --muted: #9AA8A0; --line: #2C3832;
+  --accent: #5FC08F; --accent-soft: #1E3328; --protein: #7FA6E0; --carb: #E8BC62; --fat: #E58B73;
+  --warn: #F0A867; --warn-soft: #33261A; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.7;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.3; }
+h1 { font-size: clamp(1.7rem, 4vw, 2.3rem); font-weight: 700; }
+h2 { font-size: 1.15rem; font-weight: 600; }
+header p { margin: 6px 0 0; color: var(--muted); max-width: 62ch; }
+.grid { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* form */
+form {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  padding: 22px; display: flex; flex-direction: column; gap: 16px;
+}
+@media (min-width: 861px) { form { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); } }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+label, .lbl { font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+input[type=number], input[type=text], select {
+  font: inherit; color: var(--fg); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 9px; padding: 9px 11px; width: 100%;
+}
+input[type=number] { font-variant-numeric: tabular-nums; }
+input:focus-visible, select:focus-visible, .seg label:focus-within { outline: 2px solid var(--accent); outline-offset: 1px; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; padding: 3px; gap: 3px; }
+.seg.four { grid-template-columns: repeat(4, 1fr); }
+.seg label { text-align: center; padding: 6px 4px; border-radius: 7px; cursor: pointer; color: var(--fg); font-weight: 500; font-size: 0.9rem; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label:has(input:checked) { background: var(--accent); color: var(--surface); }
+.unit { font-weight: 400; color: var(--muted); font-size: 0.78rem; }
+.hint { font-size: 0.8rem; color: var(--muted); margin: 0; }
+
+/* results */
+.results { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 620px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.stat { display: flex; flex-direction: column; gap: 2px; padding: 14px; border-radius: 11px; background: var(--bg); }
+.stat .k { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+.stat .v { font-family: var(--font-display); font-size: 1.55rem; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.stat .s { font-size: 0.78rem; color: var(--muted); }
+.stat.hero { background: var(--accent); color: var(--surface); }
+.stat.hero .k, .stat.hero .s { color: var(--surface); opacity: .85; }
+
+.notice { background: var(--warn-soft); color: var(--warn); border-radius: 10px; padding: 10px 14px; font-size: 0.88rem; }
+.goalline { font-size: 1rem; margin: 0; }
+.goalline strong { font-family: var(--font-display); color: var(--accent); }
+
+.chart-box { overflow-x: auto; }
+svg { display: block; width: 100%; height: auto; min-width: 480px; }
+.ax { stroke: var(--line); stroke-width: 1; }
+.axt { fill: var(--muted); font-size: 11px; font-family: var(--font-body); }
+.ln { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linejoin: round; }
+.ar { fill: var(--accent-soft); }
+.gl { stroke: var(--fat); stroke-dasharray: 5 4; stroke-width: 1.5; }
+.glt { fill: var(--fat); font-size: 11px; font-weight: 600; font-family: var(--font-body); }
+.dot { fill: var(--surface); stroke: var(--accent); stroke-width: 2.5; }
+
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 0.92rem; }
+th, td { text-align: right; padding: 9px 8px; border-bottom: 1px solid var(--line); }
+th { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+tr:last-child td { border-bottom: 0; }
+.tbl { overflow-x: auto; }
+
+.macro-bar { display: flex; height: 14px; border-radius: 7px; overflow: hidden; }
+.macro-bar span { display: block; }
+.macros { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.macro { display: flex; flex-direction: column; gap: 2px; }
+.macro .n { display: flex; align-items: center; gap: 7px; font-weight: 600; font-size: 0.9rem; }
+.sw { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.macro .g { font-family: var(--font-display); font-size: 1.35rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.macro .c { font-size: 0.8rem; color: var(--muted); }
+
+.meals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 620px) { .meals { grid-template-columns: minmax(0, 1fr); } }
+.meal { border: 1px solid var(--line); border-radius: 11px; padding: 14px; display: flex; flex-direction: column; gap: 4px; }
+.meal .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.meal h3 { font-size: 1rem; font-weight: 600; }
+.meal .kc { font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 600; font-size: 0.9rem; white-space: nowrap; }
+.meal p { margin: 0; color: var(--muted); font-size: 0.88rem; }
+
+.habits { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.habits li { display: flex; gap: 12px; align-items: baseline; }
+.habits b { min-width: 6.5em; font-family: var(--font-display); font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; }
+.snap-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.pill { font-size: 0.75rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+.pill.off { background: var(--warn-soft); color: var(--warn); }
+.snap-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 620px) { .snap-grid { grid-template-columns: minmax(0, 1fr); } }
+.drop { border: 1.5px dashed var(--line); border-radius: 12px; min-height: 210px; display: grid; place-items: center; overflow: hidden; background: var(--bg); }
+.drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.drop img { width: 100%; height: 100%; max-height: 300px; object-fit: cover; display: block; }
+.drop-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--muted); font-size: 0.88rem; padding: 20px; text-align: center; }
+.drop-empty svg { width: 42px; height: 42px; stroke: var(--muted); fill: none; stroke-width: 1.6; }
+.snap-side { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.btnrow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn { font: inherit; font-weight: 600; font-size: 0.92rem; cursor: pointer; border-radius: 9px; padding: 10px 14px; text-align: center; border: 1px solid var(--line); background: var(--surface); color: var(--fg); }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn:focus-visible, .xbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.snap-msg { font-size: 0.88rem; color: var(--muted); margin: 0; min-height: 1.2em; }
+.snap-msg.err { color: var(--warn); }
+.snap-out { display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--line); padding-top: 16px; }
+.snap-total { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 8px; }
+.snap-total .big { font-family: var(--font-display); font-size: 2rem; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.daylog { display: flex; flex-direction: column; gap: 10px; background: var(--bg); border-radius: 12px; padding: 16px; }
+.daylog h3 { font-size: 1rem; font-weight: 600; }
+.daylog p { margin: 0; }
+.progress { height: 12px; border-radius: 6px; background: var(--line); overflow: hidden; }
+.progress span { display: block; height: 100%; width: 0; background: var(--accent); }
+.progress.over span { background: var(--fat); }
+.loglist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.loglist li { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 0.92rem; }
+.loglist li:last-child { border-bottom: 0; }
+.loglist li > span:first-child { flex: 1; min-width: 0; }
+.loglist .kc { font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 600; white-space: nowrap; }
+.loglist .empty { color: var(--muted); }
+.xbtn { font: inherit; border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 1.1rem; line-height: 1; padding: 2px 6px; border-radius: 6px; }
+.xbtn:hover { color: var(--fat); }
+footer { color: var(--muted); font-size: 0.8rem; max-width: 70ch; }
+@media (prefers-reduced-motion: no-preference) { .ln { transition: d .3s; } }
+</style>
+</head>
+<body>
+
+<div class="wrap" dir="rtl" lang="ar">
+  <header>
+    <h1>ميزان السعرات</h1>
+    <p>أدخل بياناتك لتعرف احتياجك اليومي من السعرات، وكم سعرة تأكل لتصل لوزنك المستهدف، ومتى تتوقع الوصول إليه.</p>
+  </header>
+
+  <div class="grid">
+    <form id="f" novalidate>
+      <div class="field">
+        <span class="lbl">الجنس</span>
+        <div class="seg" role="radiogroup">
+          <label><input type="radio" name="sex" id="sex-m" value="m" checked>ذكر</label>
+          <label><input type="radio" name="sex" id="sex-f" value="f">أنثى</label>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="age">العمر <span class="unit">سنة</span></label><input type="number" id="age" min="15" max="90" value="30"></div>
+        <div class="field"><label for="height">الطول <span class="unit">سم</span></label><input type="number" id="height" min="130" max="230" value="175"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="weight">الوزن الحالي <span class="unit">كغ</span></label><input type="number" id="weight" min="35" max="300" step="0.1" value="92"></div>
+        <div class="field"><label for="goal">الوزن المستهدف <span class="unit">كغ</span></label><input type="number" id="goal" min="35" max="300" step="0.1" value="78"></div>
+      </div>
+      <div class="field">
+        <label for="activity">مستوى النشاط</label>
+        <select id="activity">
+          <option value="1.2">خامل: عمل مكتبي بلا رياضة</option>
+          <option value="1.375" selected>خفيف: رياضة 1–3 أيام أسبوعياً</option>
+          <option value="1.55">متوسط: رياضة 3–5 أيام أسبوعياً</option>
+          <option value="1.725">عالٍ: رياضة 6–7 أيام أسبوعياً</option>
+          <option value="1.9">عالٍ جداً: عمل بدني أو تمرين مرتين يومياً</option>
+        </select>
+      </div>
+      <div class="field">
+        <span class="lbl">سرعة التغيير <span class="unit">كغ في الأسبوع</span></span>
+        <div class="seg four" role="radiogroup">
+          <label><input type="radio" name="pace" id="pace-1" value="0.25">0.25</label>
+          <label><input type="radio" name="pace" id="pace-2" value="0.5" checked>0.5</label>
+          <label><input type="radio" name="pace" id="pace-3" value="0.75">0.75</label>
+          <label><input type="radio" name="pace" id="pace-4" value="1">1</label>
+        </div>
+        <p class="hint">0.5 كغ أسبوعياً هي السرعة الأسهل في الالتزام لأغلب الناس.</p>
+      </div>
+      <p class="hint">القيم المعبأة مثال، غيّرها ببياناتك وستتحدث النتائج فوراً.</p>
+    </form>
+
+    <div class="results">
+      <section class="panel" aria-live="polite">
+        <div class="stats">
+          <div class="stat"><span class="k">الحرق الأساسي</span><span class="v" id="o-bmr">–</span><span class="s">سعرة/يوم وأنت في راحة</span></div>
+          <div class="stat"><span class="k">احتياجك اليومي</span><span class="v" id="o-tdee">–</span><span class="s">لتثبيت وزنك الحالي</span></div>
+          <div class="stat hero"><span class="k">هدفك اليومي</span><span class="v" id="o-target">–</span><span class="s">سعرة في الشهر الأول</span></div>
+          <div class="stat"><span class="k">مؤشر كتلة الجسم</span><span class="v" id="o-bmi">–</span><span class="s" id="o-bmic">–</span></div>
+        </div>
+        <p class="goalline" id="o-goal"></p>
+        <div class="notice" id="o-notice" hidden></div>
+      </section>
+
+      <section class="panel" id="snap">
+        <div class="snap-head"><h2>صوّر وجبتك</h2><span class="pill" id="snap-pill">تحليل بالذكاء الاصطناعي</span></div>
+        <p class="hint">التقط صورة لطبقك من الأعلى، وسيتعرف Claude على الأصناف ويقدّر الكمية والسعرات. التقدير من الصورة تقريبي، واكتب ملاحظة عن الكمية أو طريقة الطبخ لتحسين الدقة.</p>
+        <div class="snap-grid">
+          <div class="drop" id="drop">
+            <img id="snap-img" alt="صورة الوجبة المختارة" hidden>
+            <div class="drop-empty" id="drop-empty">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+              <span>اسحب صورة الوجبة هنا أو الصقها</span>
+            </div>
+          </div>
+          <div class="snap-side">
+            <div class="btnrow">
+              <label class="btn" for="snap-cam">التقط صورة</label>
+              <label class="btn" for="snap-pick">اختر من الصور</label>
+            </div>
+            <input type="file" id="snap-cam" accept="image/*" capture="environment" hidden>
+            <input type="file" id="snap-pick" accept="image/*" hidden>
+            <div class="field">
+              <label for="snap-note">ملاحظة عن الوجبة <span class="unit">اختياري</span></label>
+              <input type="text" id="snap-note" maxlength="300" placeholder="مثال: كوب رز، الدجاج مشوي بدون جلد">
+            </div>
+            <button type="button" class="btn primary" id="snap-go" disabled>احسب السعرات</button>
+            <button type="button" class="btn" id="snap-stop" hidden>إيقاف التحليل</button>
+            <p class="snap-msg" id="snap-msg" aria-live="polite"></p>
+          </div>
+        </div>
+        <div class="snap-out" id="snap-out" hidden></div>
+        <div class="daylog">
+          <h3>سجل اليوم</h3>
+          <p id="log-sum"></p>
+          <div class="progress" id="log-bar"><span></span></div>
+          <ul class="loglist" id="log-list"></ul>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>منحنى الوزن المتوقع</h2>
+        <div class="chart-box"><svg id="chart" viewBox="0 0 640 270" role="img" aria-label="منحنى الوزن المتوقع أسبوعاً بأسبوع"></svg></div>
+        <div class="tbl">
+          <table>
+            <thead><tr><th>المرحلة</th><th>الأسبوع</th><th>الوزن المتوقع</th><th>السعرات اليومية</th></tr></thead>
+            <tbody id="o-table"></tbody>
+          </table>
+        </div>
+        <p class="hint">كلما تغيّر وزنك يتغيّر احتياجك، لذلك تتعدل السعرات قليلاً في كل مرحلة.</p>
+      </section>
+
+      <section class="panel">
+        <h2>توزيع العناصر الغذائية</h2>
+        <div class="macro-bar" id="o-mbar"></div>
+        <div class="macros" id="o-macros"></div>
+      </section>
+
+      <section class="panel">
+        <h2>يومك على الطبق</h2>
+        <div class="meals" id="o-meals"></div>
+      </section>
+
+      <section class="panel">
+        <h2>عادات أسبوعية تثبّت النتيجة</h2>
+        <ul class="habits" id="o-habits"></ul>
+      </section>
+    </div>
+  </div>
+
+  <footer>الأرقام تقديرية مبنية على معادلة ميفلين–سانت جيور، وعلى أن 1 كغ من الدهون يعادل نحو 7700 سعرة. النتائج الفعلية تختلف من شخص لآخر. إذا كانت لديك حالة صحية أو حمل أو رضاعة، راجع طبيباً أو أخصائي تغذية قبل البدء.</footer>
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n, d = 0) => Number(n).toLocaleString('en-US', { maximumFractionDigits: d, minimumFractionDigits: d });
+  const KEY = 'calorie-plan-inputs';
+  const ids = ['age', 'height', 'weight', 'goal', 'activity'];
+
+  // restore saved inputs
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (saved) {
+      ids.forEach((k) => { if (saved[k] != null) $(k).value = saved[k]; });
+      if (saved.sex) { const r = document.querySelector('input[name=sex][value="' + saved.sex + '"]'); if (r) r.checked = true; }
+      if (saved.pace) { const r = document.querySelector('input[name=pace][value="' + saved.pace + '"]'); if (r) r.checked = true; }
+    }
+  } catch (e) {}
+
+  function read() {
+    return {
+      sex: document.querySelector('input[name=sex]:checked').value,
+      age: parseFloat($('age').value), h: parseFloat($('height').value),
+      w: parseFloat($('weight').value), goal: parseFloat($('goal').value),
+      act: parseFloat($('activity').value),
+      pace: parseFloat(document.querySelector('input[name=pace]:checked').value)
+    };
+  }
+  const bmrOf = (s, w) => 10 * w + 6.25 * s.h - 5 * s.age + (s.sex === 'm' ? 5 : -161);
+
+  function simulate(s) {
+    const dir = s.goal < s.w - 0.2 ? -1 : s.goal > s.w + 0.2 ? 1 : 0;
+    const floor = s.sex === 'm' ? 1500 : 1200;
+    const pace = dir > 0 ? Math.min(s.pace, 0.5) : s.pace;
+    const pts = [{ wk: 0, w: s.w, kcal: Math.round(bmrOf(s, s.w) * s.act) }];
+    let w = s.w, clamped = false;
+    if (dir === 0) return { dir, pts, clamped, pace, floor };
+    for (let wk = 1; wk <= 156; wk++) {
+      const tdee = bmrOf(s, w) * s.act;
+      let kcal = tdee + dir * pace * 7700 / 7;
+      if (kcal < floor) { kcal = floor; clamped = true; }
+      const next = w + (kcal - tdee) * 7 / 7700;
+      if ((dir < 0 && next <= s.goal) || (dir > 0 && next >= s.goal)) {
+        const frac = (s.goal - w) / (next - w);
+        pts.push({ wk: wk - 1 + frac, w: s.goal, kcal });
+        break;
+      }
+      w = next;
+      pts.push({ wk, w, kcal });
+      if (Math.abs(next - w) < 0.01 && wk > 10) break; // stalled
+    }
+    pts[0].kcal = pts[1] ? pts[1].kcal : pts[0].kcal;
+    return { dir, pts, clamped, pace, floor };
+  }
+
+  const r10 = (n) => Math.round(n / 10) * 10;
+
+  function bmiCat(b) {
+    if (b < 18.5) return 'نقص في الوزن';
+    if (b < 25) return 'وزن طبيعي';
+    if (b < 30) return 'زيادة في الوزن';
+    return 'سمنة';
+  }
+
+  function niceStep(range, target) {
+    const raw = range / target, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    const n = raw / mag;
+    return (n < 1.5 ? 1 : n < 3 ? 2 : n < 7 ? 5 : 10) * mag;
+  }
+
+  function drawChart(sim, s) {
+    const svg = $('chart');
+    const W = 640, H = 270, L = 48, R = 20, T = 20, B = 36;
+    const pts = sim.pts;
+    const maxWk = Math.max(pts[pts.length - 1].wk, 4);
+    const ws = pts.map((p) => p.w);
+    let lo = Math.min(...ws, s.goal), hi = Math.max(...ws, s.goal);
+    const pad = Math.max((hi - lo) * 0.15, 1.5);
+    const yStep = niceStep(hi - lo + pad * 2, 5);
+    lo = Math.floor((lo - pad) / yStep) * yStep; hi = Math.ceil((hi + pad) / yStep) * yStep;
+    const x = (wk) => W - R - (wk / maxWk) * (W - L - R); // RTL: week 0 on the right
+    const y = (v) => T + (hi - v) / (hi - lo) * (H - T - B);
+    let out = '';
+    for (let v = lo; v <= hi + 1e-6; v += yStep) {
+      out += '<line class="ax" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v) + '" y2="' + y(v) + '"/>';
+      out += '<text class="axt" x="' + (L - 8) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + fmt(v, yStep < 1 ? 1 : 0) + '</text>';
+    }
+    const xStep = niceStep(maxWk, 6);
+    for (let wk = 0; wk <= maxWk + 1e-6; wk += xStep) {
+      out += '<text class="axt" x="' + x(wk) + '" y="' + (H - 12) + '" text-anchor="middle">' + fmt(wk) + '</text>';
+    }
+    out += '<text class="axt" x="' + L + '" y="' + (H - 12) + '" text-anchor="start" dx="-44">أسبوع</text>';
+    const gy = y(s.goal);
+    out += '<line class="gl" x1="' + L + '" x2="' + (W - R) + '" y1="' + gy + '" y2="' + gy + '"/>';
+    out += '<text class="glt" x="' + (L + 6) + '" y="' + (gy + (sim.dir < 0 ? 16 : -7)) + '" text-anchor="start">الهدف ' + fmt(s.goal, 1) + ' كغ</text>';
+    const line = pts.map((p, i) => (i ? 'L' : 'M') + x(p.wk).toFixed(1) + ' ' + y(p.w).toFixed(1)).join(' ');
+    const last = pts[pts.length - 1];
+    out += '<path class="ar" d="' + line + ' L' + x(last.wk).toFixed(1) + ' ' + (H - B) + ' L' + x(0) + ' ' + (H - B) + ' Z" opacity=".7"/>';
+    out += '<path class="ln" d="' + line + '"/>';
+    out += '<circle class="dot" cx="' + x(0) + '" cy="' + y(pts[0].w) + '" r="4.5"/>';
+    out += '<circle class="dot" cx="' + x(last.wk) + '" cy="' + y(last.w) + '" r="5.5"/>';
+    svg.innerHTML = out;
+  }
+
+  function render() {
+    const s = read();
+    const bad = [s.age, s.h, s.w, s.goal].some((v) => !isFinite(v)) || s.age < 15 || s.age > 90 || s.h < 130 || s.h > 230 || s.w < 35 || s.w > 300 || s.goal < 35 || s.goal > 300;
+    const notice = $('o-notice');
+    if (bad) {
+      notice.hidden = false;
+      notice.textContent = 'تحقق من القيم: العمر بين 15 و90، الطول بين 130 و230 سم، والوزن بين 35 و300 كغ.';
+      return;
+    }
+    try { localStorage.setItem(KEY, JSON.stringify({ sex: s.sex, age: s.age, height: s.h, weight: s.w, goal: s.goal, activity: s.act, pace: s.pace })); } catch (e) {}
+
+    const bmr = bmrOf(s, s.w), tdee = bmr * s.act;
+    const sim = simulate(s);
+    const target = r10(sim.pts[0].kcal);
+    const bmi = s.w / Math.pow(s.h / 100, 2);
+    const goalBmi = s.goal / Math.pow(s.h / 100, 2);
+
+    $('o-bmr').textContent = fmt(r10(bmr));
+    $('o-tdee').textContent = fmt(r10(tdee));
+    $('o-target').textContent = fmt(target);
+    currentTarget = target; currentDir = sim.dir; renderLog();
+    $('o-bmi').textContent = fmt(bmi, 1);
+    $('o-bmic').textContent = bmiCat(bmi);
+
+    const last = sim.pts[sim.pts.length - 1];
+    const weeks = Math.ceil(last.wk);
+    const reached = sim.dir === 0 || Math.abs(last.w - s.goal) < 0.05;
+    const date = new Date(); date.setDate(date.getDate() + Math.round(last.wk * 7));
+    const dateStr = date.toLocaleDateString('ar-u-nu-latn', { month: 'long', year: 'numeric' });
+    const diff = Math.abs(s.goal - s.w);
+
+    if (sim.dir === 0) {
+      $('o-goal').innerHTML = 'هدفك <strong>تثبيت الوزن</strong>. التزم بنحو ' + fmt(r10(tdee)) + ' سعرة يومياً.';
+    } else if (reached) {
+      $('o-goal').innerHTML = (sim.dir < 0 ? 'خسارة ' : 'زيادة ') + '<strong>' + fmt(diff, 1) + ' كغ</strong> خلال نحو <strong>' + fmt(weeks) + ' أسبوعاً</strong>، أي تقريباً في <strong>' + dateStr + '</strong>.';
+    } else {
+      $('o-goal').innerHTML = 'بهذه السرعة لن يصل المنحنى للهدف خلال 3 سنوات. جرّب سرعة أعلى أو زد نشاطك.';
+    }
+
+    const msgs = [];
+    if (sim.clamped) msgs.push('خفّضنا العجز حتى لا تنزل سعراتك عن ' + fmt(sim.floor) + ' سعرة يومياً، وهو الحد الأدنى الآمن تقريباً. لهذا قد يكون التقدم أبطأ من السرعة التي اخترتها، وزيادة النشاط تساعدك على تسريعه.');
+    if (sim.dir > 0 && s.pace > 0.5) msgs.push('للزيادة حددنا السرعة بـ 0.5 كغ أسبوعياً حتى يكون معظم الوزن عضلاً وليس دهوناً.');
+    if (goalBmi < 18.5) msgs.push('الوزن المستهدف يقع تحت الوزن الطبيعي لطولك (مؤشر ' + fmt(goalBmi, 1) + '). ننصح باستشارة مختص قبل المتابعة.');
+    if (sim.dir < 0 && s.pace >= 1 && !sim.clamped) msgs.push('خسارة 1 كغ أسبوعياً سرعة عالية، تصلح غالباً لمن لديهم وزن زائد كبير. راقب طاقتك ونومك.');
+    notice.hidden = msgs.length === 0;
+    notice.innerHTML = msgs.join('<br>');
+
+    drawChart(sim, s);
+
+    // milestones: every 4 weeks + finish
+    const rows = [];
+    const phaseNames = ['البداية'];
+    for (let wk = 0; wk < last.wk; wk += 4) {
+      const p = sim.pts.find((q) => q.wk >= wk) || last;
+      rows.push(p);
+    }
+    if (sim.dir !== 0) rows.push(last);
+    $('o-table').innerHTML = rows.map((p, i) => {
+      const name = i === 0 ? 'البداية' : (i === rows.length - 1 && sim.dir !== 0 ? (reached ? 'الوصول للهدف' : 'بعد 3 سنوات') : 'الشهر ' + fmt(i));
+      return '<tr><td>' + name + '</td><td>' + fmt(Math.round(p.wk)) + '</td><td>' + fmt(p.w, 1) + ' كغ</td><td>' + fmt(r10(i === rows.length - 1 && sim.dir !== 0 ? bmrOf(s, p.w) * s.act : p.kcal)) + (i === rows.length - 1 && sim.dir !== 0 ? ' (تثبيت)' : '') + '</td></tr>';
+    }).join('');
+
+    // macros
+    const pPerKg = sim.dir < 0 ? 2.0 : sim.dir > 0 ? 1.8 : 1.6;
+    const refW = Math.min(s.w, 25 * Math.pow(s.h / 100, 2) + 10); // avoid overestimating protein at high body fat
+    let protein = Math.round(refW * pPerKg);
+    let fat = Math.round(target * 0.27 / 9);
+    let carbs = Math.max(0, Math.round((target - protein * 4 - fat * 9) / 4));
+    const tot = protein * 4 + fat * 9 + carbs * 4;
+    const mac = [
+      ['البروتين', protein, protein * 4, 'var(--protein)', 'دجاج، سمك، بيض، لبن، عدس'],
+      ['الكربوهيدرات', carbs, carbs * 4, 'var(--carb)', 'رز، شوفان، خبز بر، فواكه'],
+      ['الدهون', fat, fat * 9, 'var(--fat)', 'زيت زيتون، مكسرات، أفوكادو']
+    ];
+    $('o-mbar').innerHTML = mac.map((m) => '<span style="width:' + (m[2] / tot * 100).toFixed(1) + '%;background:' + m[3] + '"></span>').join('');
+    $('o-macros').innerHTML = mac.map((m) => '<div class="macro"><span class="n"><i class="sw" style="background:' + m[3] + '"></i>' + m[0] + '</span><span class="g">' + fmt(m[1]) + ' غ</span><span class="c">' + fmt(Math.round(m[2] / tot * 100)) + '% · ' + m[4] + '</span></div>').join('');
+
+    // meals
+    const lose = sim.dir < 0;
+    const meals = [
+      ['الفطور', 0.25, lose ? 'بيضتان مع خبز بر وخيار وطماطم، أو شوفان بالحليب والتوت.' : 'شوفان بالحليب والموز وزبدة الفول السوداني، مع بيضتين.'],
+      ['الغداء', 0.35, lose ? 'صدر دجاج مشوي مع ملعقتين رز وسلطة كبيرة بزيت الزيتون.' : 'رز مع لحم أو دجاج وخضار مطبوخة، وسلطة بزيت الزيتون.'],
+      ['العشاء', 0.25, lose ? 'سمك أو تونة مع خضار سوتيه، أو شوربة عدس مع لبن.' : 'ساندويتش خبز بر بالتونة أو الجبن، مع زبادي وفاكهة.'],
+      ['وجبة خفيفة', 0.15, lose ? 'زبادي يوناني مع حفنة مكسرات، أو تفاحة وتمرتان.' : 'حليب مع تمر ومكسرات، أو مخفوق بروتين بالموز.']
+    ];
+    $('o-meals').innerHTML = meals.map((m) => '<div class="meal"><div class="top"><h3>' + m[0] + '</h3><span class="kc">' + fmt(r10(target * m[1])) + ' سعرة</span></div><p>' + m[2] + '</p></div>').join('');
+
+    // habits
+    const water = Math.round(s.w * 0.033 * 10) / 10;
+    const habits = [
+      [fmt(water, 1) + ' لتر', 'ماء يومياً، وكوب قبل كل وجبة يساعد على الشبع.'],
+      [lose ? '8,000+ خطوة' : '3 تمارين', lose ? 'مشي يومي يرفع الحرق دون أن يزيد الجوع كثيراً.' : 'تمارين مقاومة أسبوعياً حتى تتحول الزيادة إلى عضل.'],
+      ['7–8 ساعات', 'نوم ليلي. قلة النوم ترفع الشهية وتبطئ التقدم.'],
+      ['وزن أسبوعي', 'زن نفسك صباحاً في نفس اليوم كل أسبوع، وقارن المتوسط لا الرقم الواحد.'],
+      ['كل 4 أسابيع', 'ارجع لهذه الصفحة وأدخل وزنك الجديد لتحديث سعراتك.']
+    ];
+    $('o-habits').innerHTML = habits.map((h) => '<li><b>' + h[0] + '</b><span>' + h[1] + '</span></li>').join('');
+  }
+
+  // ---------- meal photo analysis ----------
+  let currentTarget = 0, currentDir = 0;
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const num = (v) => Math.max(0, Math.round(Number(v) || 0));
+  const todayKey = () => { const d = new Date(); return 'meal-log-' + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
+  let mealLog = [];
+  try { mealLog = JSON.parse(localStorage.getItem(todayKey()) || '[]'); if (!Array.isArray(mealLog)) mealLog = []; } catch (e) { mealLog = []; }
+  function saveLog() { try { localStorage.setItem(todayKey(), JSON.stringify(mealLog)); } catch (e) {} }
+
+  function renderLog() {
+    const eaten = mealLog.reduce((a, m) => a + (m.kcal || 0), 0);
+    const left = currentTarget - eaten;
+    $('log-sum').innerHTML = 'أكلت <strong>' + fmt(eaten) + '</strong> من ' + fmt(currentTarget) + ' سعرة · ' + (left >= 0 ? 'باقي ' + fmt(left) + ' سعرة' : 'تجاوزت هدفك بـ ' + fmt(-left) + ' سعرة');
+    const bar = $('log-bar');
+    bar.classList.toggle('over', left < 0);
+    bar.firstElementChild.style.width = (currentTarget ? Math.min(100, eaten / currentTarget * 100) : 0) + '%';
+    $('log-list').innerHTML = mealLog.length
+      ? mealLog.map((m, i) => '<li><span>' + esc(m.name) + '</span><span class="kc">' + fmt(m.kcal) + ' سعرة</span><button type="button" class="xbtn" data-i="' + i + '" aria-label="حذف ' + esc(m.name) + '">×</button></li>').join('')
+      : '<li class="empty">لم تسجّل أي وجبة اليوم. صوّر وجبتك ثم اضغط «أضف إلى سجل اليوم».</li>';
+  }
+  $('log-list').addEventListener('click', (e) => {
+    const b = e.target.closest('.xbtn'); if (!b) return;
+    mealLog.splice(+b.dataset.i, 1); saveLog(); renderLog();
+  });
+
+  const samplePromise = window.claude ? window.claude.use('sample').catch(() => null) : Promise.resolve(null);
+  samplePromise.then((s) => {
+    const pill = $('snap-pill');
+    if (!s) { $('snap').hidden = true; return; } if (!s) { pill.textContent = 'غير متاح في هذا العرض'; pill.classList.add('off'); return; }
+    s.limits().then((l) => { if (!l || !l.images) { pill.textContent = 'الصور غير متاحة هنا'; pill.classList.add('off'); } }).catch(() => {});
+  });
+
+  let snapFile = null, snapResult = null, ctl = null;
+  function setMsg(t, err) { const m = $('snap-msg'); m.textContent = t || ''; m.classList.toggle('err', !!err); }
+  function setFile(f) {
+    if (!f || !/^image\//.test(f.type)) { setMsg('اختر ملف صورة مثل JPG أو PNG.', true); return; }
+    snapFile = f;
+    const img = $('snap-img');
+    if (img.dataset.url) URL.revokeObjectURL(img.dataset.url);
+    const u = URL.createObjectURL(f); img.src = u; img.dataset.url = u; img.hidden = false;
+    $('drop-empty').hidden = true; $('snap-go').disabled = false; $('snap-out').hidden = true;
+    setMsg('الصورة جاهزة. اضغط «احسب السعرات».');
+  }
+  ['snap-cam', 'snap-pick'].forEach((id) => $(id).addEventListener('change', (e) => { setFile(e.target.files[0]); e.target.value = ''; }));
+  const drop = $('drop');
+  drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+  drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('over'); setFile(e.dataTransfer.files[0]); });
+  document.addEventListener('paste', (e) => {
+    const f = Array.from((e.clipboardData && e.clipboardData.files) || []).find((x) => /^image\//.test(x.type));
+    if (f) setFile(f);
+  });
+
+  const errCopy = {
+    not_granted: 'لم يُسمح للصفحة باستخدام Claude، لذلك لا يمكن تحليل الصور.',
+    sampling_disabled: 'Claude غير متاح لهذا الحساب.',
+    images_unavailable: 'إرسال الصور غير متاح في هذا العرض.',
+    image_rejected: 'تعذّرت قراءة الصورة. جرّب صورة JPG أو PNG أصغر.',
+    rate_limited: 'طلبات كثيرة في وقت قصير. حاول بعد دقيقة.',
+    session_expired: 'انتهت الجلسة. سجّل الدخول من جديد ثم حاول.',
+    invalid_json: 'لم تكتمل الإجابة. اضغط «احسب السعرات» مرة أخرى.',
+    refused: 'تعذّر تحليل هذه الصورة. جرّب صورة أخرى للطبق.'
+  };
+
+  $('snap-stop').addEventListener('click', () => { if (ctl) ctl.abort(); });
+  $('snap-go').addEventListener('click', async () => {
+    if (!snapFile) return;
+    const go = $('snap-go');
+    go.disabled = true;
+    setMsg('جارٍ تحليل الصورة… قد يستغرق ذلك حتى دقيقة.');
+    const sample = await samplePromise;
+    if (!sample) { setMsg('تحليل الصور يعمل فقط عند فتح الصفحة داخل Claude.', true); go.disabled = false; return; }
+    $('snap-stop').hidden = false;
+    ctl = new AbortController();
+    const goalTxt = currentDir < 0 ? 'lose weight' : currentDir > 0 ? 'gain weight' : 'maintain weight';
+    const note = $('snap-note').value.trim().slice(0, 300);
+    const prompt = [
+      'You estimate the nutrition of a meal from a photo for a calorie-tracking app.',
+      'Look at the attached photo. List each visible food or drink, estimate its portion (household measure plus grams), and estimate calories, protein, carbohydrates and fat for that portion.',
+      'When a dish is regional (for example kabsa, mandi, hummus, shawarma, mutabbaq), use typical Gulf and Middle-Eastern recipes, and count visible oil, ghee, sauces and sweet drinks.',
+      'Viewer note about the meal (may be empty, trust it for portions): "' + note + '"',
+      'Viewer goal: ' + goalTxt + '. Daily calorie target: ' + currentTarget + ' kcal.',
+      'Reply with only this JSON. Write every text value in Arabic:',
+      '{"is_food": true, "meal_name": "short meal name", "items": [{"name": "item", "portion": "كوب واحد (~150 غ)", "kcal": 0, "protein_g": 0, "carbs_g": 0, "fat_g": 0}], "confidence": "high|medium|low", "tip": "one short practical sentence for this goal"}',
+      'If the photo shows no food or drink, reply {"is_food": false, "items": []}.'
+    ].join('\n');
+    try {
+      const r = await sample.json(prompt, { images: snapFile, signal: ctl.signal });
+      if (!r || r.is_food === false || !Array.isArray(r.items) || !r.items.length) {
+        setMsg('لم أتعرف على طعام في هذه الصورة. جرّب صورة أوضح للطبق من الأعلى.', true);
+        return;
+      }
+      const items = r.items.slice(0, 20).map((it) => ({
+        name: String(it.name || 'صنف'), portion: String(it.portion || ''),
+        kcal: num(it.kcal), p: num(it.protein_g), c: num(it.carbs_g), f: num(it.fat_g)
+      }));
+      const sum = (k) => items.reduce((a, it) => a + it[k], 0);
+      snapResult = { name: String(r.meal_name || 'وجبة'), items, kcal: sum('kcal'), p: sum('p'), c: sum('c'), f: sum('f'), conf: String(r.confidence || ''), tip: String(r.tip || '') };
+      showResult();
+      setMsg('');
+    } catch (e) {
+      if (e && e.code === 'cancelled') setMsg('أوقفت التحليل.');
+      else setMsg((e && errCopy[e.code]) || 'حدث خطأ مؤقت. حاول مرة أخرى.', true);
+    } finally {
+      go.disabled = !snapFile; $('snap-stop').hidden = true; ctl = null;
+    }
+  });
+
+  function showResult() {
+    const r = snapResult, out = $('snap-out');
+    const conf = { high: 'عالية', medium: 'متوسطة', low: 'منخفضة' }[r.conf] || 'متوسطة';
+    const pct = currentTarget ? Math.round(r.kcal / currentTarget * 100) : 0;
+    out.innerHTML =
+      '<div class="snap-total"><div><div class="lbl">' + esc(r.name) + '</div><span class="big">' + fmt(r.kcal) + '</span> سعرة</div><span class="pill">دقة التقدير: ' + conf + '</span></div>' +
+      '<p class="goalline">هذه الوجبة تمثل <strong>' + fmt(pct) + '%</strong> من هدفك اليومي · بروتين ' + fmt(r.p) + ' غ · كربوهيدرات ' + fmt(r.c) + ' غ · دهون ' + fmt(r.f) + ' غ</p>' +
+      '<div class="tbl"><table><thead><tr><th>الصنف</th><th>الكمية التقديرية</th><th>سعرات</th><th>بروتين</th><th>كربوهيدرات</th><th>دهون</th></tr></thead><tbody>' +
+      r.items.map((it) => '<tr><td>' + esc(it.name) + '</td><td>' + esc(it.portion) + '</td><td>' + fmt(it.kcal) + '</td><td>' + fmt(it.p) + ' غ</td><td>' + fmt(it.c) + ' غ</td><td>' + fmt(it.f) + ' غ</td></tr>').join('') +
+      '</tbody></table></div>' +
+      (r.tip ? '<p class="hint">' + esc(r.tip) + '</p>' : '') +
+      '<div><button type="button" class="btn primary" id="snap-add">أضف إلى سجل اليوم</button></div>';
+    out.hidden = false;
+  }
+  $('snap-out').addEventListener('click', (e) => {
+    const b = e.target.closest('#snap-add'); if (!b || !snapResult) return;
+    mealLog.push({ name: snapResult.name, kcal: snapResult.kcal, p: snapResult.p, c: snapResult.c, f: snapResult.f, t: Date.now() });
+    saveLog(); renderLog();
+    b.disabled = true; b.textContent = 'أضيفت إلى سجل اليوم';
+  });
+
+  $('f').addEventListener('input', render);
+  $('f').addEventListener('change', render);
+  $('f').addEventListener('submit', (e) => e.preventDefault());
+  render();
+})();
+</script>
+
+</body>
+</html>
