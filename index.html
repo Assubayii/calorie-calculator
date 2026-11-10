@@ -27,6 +27,7 @@
   --pink-ink: #FF6FE0;
   --warn: #FFB547;
   --warn-soft: #33260F;
+  --flame: #FF8A3D;
   --shadow: 0 0 0 1px rgba(198, 255, 61, 0.35), 0 0 32px rgba(198, 255, 61, 0.16);
   --font-display: "Readex Pro", "Segoe UI", Tahoma, sans-serif;
   --font-body: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
@@ -50,6 +51,7 @@
   --pink-ink: #B8168F;
   --warn: #A55A00;
   --warn-soft: #FFF0DA;
+  --flame: #E0620F;
   --shadow: 0 0 0 1px rgba(74, 133, 0, 0.35), 0 10px 30px rgba(20, 20, 43, 0.08);
   color-scheme: light;
 }
@@ -256,6 +258,52 @@ tbody tr:last-child td:first-child { color: var(--lime-ink); font-weight: 600; }
 .act-line { fill: none; stroke: var(--pink); stroke-width: 2.5; stroke-linejoin: round; }
 .act-dot { fill: var(--pink); stroke: var(--surface); stroke-width: 2; }
 .adj { color: var(--lime-ink); font-weight: 600; font-size: 0.92rem; }
+.moti-top { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.streak { display: flex; align-items: center; gap: 14px; }
+.flame { width: 58px; height: 58px; border-radius: 18px; display: grid; place-items: center; background: var(--surface-2); color: var(--muted); }
+.flame svg { width: 32px; height: 32px; }
+.streak.hot .flame { background: color-mix(in srgb, var(--flame) 20%, transparent); color: var(--flame); }
+@media (prefers-reduced-motion: no-preference) {
+  .streak.hot .flame svg { animation: flick 1.6s ease-in-out infinite; transform-origin: 50% 90%; }
+  @keyframes flick { 50% { transform: scale(1.1) rotate(-4deg); } }
+}
+.st-line { display: flex; align-items: baseline; gap: 8px; }
+.st-line b { font-family: var(--font-display); font-size: 2.3rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.streak.hot .st-line b { color: var(--flame); }
+.st-line span { font-weight: 600; }
+.streak small { color: var(--muted); font-size: 0.8rem; }
+.week { display: flex; gap: 8px; }
+.wd { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.72rem; color: var(--muted); }
+.wd i { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line); display: block; }
+.wd.ok i { background: var(--lime); border-color: var(--lime); box-shadow: 0 0 12px rgba(198, 255, 61, .35); }
+.wd.now i { border-style: dashed; border-color: var(--cyan-ink); }
+.wd.now.ok i { border-style: solid; border-color: var(--lime); }
+.wd.now span { color: var(--fg); font-weight: 600; }
+.saved { background: var(--surface-2); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 4px; }
+.sv-main { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.sv-num { font-family: var(--font-display); font-size: 2.1rem; font-weight: 700; color: var(--cyan-ink); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.sv-main span:last-child { font-weight: 600; }
+.saved p { margin: 0; }
+#sv-eq b { color: var(--lime-ink); font-variant-numeric: tabular-nums; }
+.bd-wrap { display: flex; flex-direction: column; gap: 10px; }
+.bd-wrap .subh { display: flex; align-items: center; gap: 8px; }
+.badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); gap: 10px; }
+.badge { background: var(--surface-2); border-radius: 16px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; }
+.badge .bi { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: var(--line); color: var(--muted); opacity: .6; }
+.badge.on .bi { background: var(--lime); color: var(--on-lime); opacity: 1; box-shadow: 0 0 16px rgba(198, 255, 61, .4); }
+.badge b { font-family: var(--font-display); font-size: 0.86rem; font-weight: 600; color: var(--muted); }
+.badge.on b { color: var(--fg); }
+.badge span { font-size: 0.72rem; color: var(--muted); line-height: 1.4; }
+@media (prefers-reduced-motion: no-preference) {
+  .badge.pop { animation: pop .7s cubic-bezier(.3, 1.6, .5, 1); }
+  @keyframes pop { 0% { transform: scale(.5); } 100% { transform: scale(1); } }
+}
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 51; background: var(--lime); color: var(--on-lime); font-family: var(--font-display); font-weight: 600; padding: 12px 22px; border-radius: 999px; box-shadow: 0 10px 30px rgba(0, 0, 0, .35); max-width: calc(100% - 32px); text-align: center; }
+@media (prefers-reduced-motion: no-preference) {
+  .toast.show { animation: tin .35s ease-out; }
+  @keyframes tin { from { transform: translate(-50%, 20px); opacity: 0; } }
+}
+.confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
 footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 </style>
@@ -331,6 +379,27 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
           <div class="stat"><span class="k">مؤشر كتلة الجسم</span><span class="v" id="o-bmi">–</span><span class="s" id="o-bmic">–</span></div>
         </div>
         <div class="notice" id="o-notice" hidden></div>
+      </section>
+
+      <section class="panel" id="moti">
+        <h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 3M16 6h3a3 3 0 0 1-3 3M12 13v4M8 20h8"/></svg>إنجازاتك</h2>
+        <div class="moti-top">
+          <div class="streak" id="streak">
+            <div class="flame"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c.6 3.2 4.5 5 4.5 9.5a4.5 4.5 0 0 1-9 0c0-2.2 1.2-3.6 2.3-4.6.1 1.7.8 2.8 1.9 3.1-.4-2.8-.6-5.2.3-8z"/></svg></div>
+            <div><div class="st-line"><b id="st-num">0</b><span>أيام متتالية</span></div><small id="st-best"></small></div>
+          </div>
+          <div class="week" id="st-week" aria-label="التزامك في آخر 7 أيام"></div>
+        </div>
+        <p class="hint" id="st-hint"></p>
+        <div class="saved" id="saved">
+          <div class="sv-main"><span class="sv-num" id="sv-num">0</span><span id="sv-lbl">سعرة وفّرتها من بداية الخطة</span></div>
+          <p id="sv-eq"></p>
+          <p class="hint">يتحسب من الأيام اللي سجلت فيها أكلك، ما عدا اليوم.</p>
+        </div>
+        <div class="bd-wrap">
+          <h3 class="subh">شاراتك <span class="pill" id="bd-count"></span></h3>
+          <div class="badges" id="badges"></div>
+        </div>
       </section>
 
       <section class="panel" id="snap">
@@ -436,6 +505,7 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
     </div>
   </div>
 
+  <div class="toast" id="toast" role="status" hidden></div>
   <footer>الأرقام تقديرية مبنية على معادلة ميفلين–سانت جيور، وعلى أن 1 كغ من الدهون يعادل نحو 7700 سعرة. النتائج الفعلية تختلف من شخص لآخر. إذا كانت لديك حالة صحية أو حمل أو رضاعة، راجع طبيباً أو أخصائي تغذية قبل البدء.</footer>
 </div>
 
@@ -583,7 +653,13 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
     gym: '<path d="M3 10v4M6 7v10M18 7v10M21 10v4M6 12h12"/>',
     moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
     scale: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 10a4 4 0 0 1 6 0l-3 2.5"/>',
-    cal: '<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/>'
+    cal: '<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+    bowl: '<path d="M4 11h16a8 8 0 0 1-16 0z"/><path d="M9 7c0-1.5 1-2 1-3M14 7c0-1.5 1-2 1-3"/>',
+    flame: '<path d="M12 3c.6 3.2 4.5 5 4.5 9.5a4.5 4.5 0 0 1-9 0c0-2.2 1.2-3.6 2.3-4.6.1 1.7.8 2.8 1.9 3.1-.4-2.8-.6-5.2.3-8z"/>',
+    trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 3M16 6h3a3 3 0 0 1-3 3M12 13v4M8 20h8"/>',
+    star: '<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>',
+    target: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/>',
+    bolt: '<path d="M13.5 2 4 13.5h6.5L9.5 22 20 9.5h-6.5z"/>'
   };
   const ico = (k) => '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">' + ICONS[k] + '</svg>';
 
@@ -611,7 +687,7 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
     animateNum($('o-target'), target);
     animateNum($('o-bmi'), Math.round(bmi * 10) / 10, 1);
     $('o-bmic').textContent = bmiCat(bmi);
-    currentTarget = target; currentDir = sim.dir; renderLog();
+    currentTarget = target; currentDir = sim.dir; currentS = s; currentTdee = r10(tdee); renderLog();
 
     const last = sim.pts[sim.pts.length - 1];
     const weeks = Math.ceil(last.wk);
@@ -692,7 +768,7 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
   }
 
   // ---------- meal photo analysis + daily log ----------
-  let currentTarget = 0, currentDir = 0;
+  let currentTarget = 0, currentDir = 0, currentS = null, currentTdee = 0;
   const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const num = (v) => Math.max(0, Math.round(Number(v) || 0));
   const todayKey = () => { const d = new Date(); return 'meal-log-' + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
@@ -715,7 +791,7 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
   }
   $('log-list').addEventListener('click', (e) => {
     const b = e.target.closest('.xbtn'); if (!b) return;
-    mealLog.splice(+b.dataset.i, 1); saveLog(); renderLog();
+    mealLog.splice(+b.dataset.i, 1); saveLog(); renderLog(); refreshMotivation(false);
   });
 
   // ---------- weight log: actual vs plan, with auto adjustment ----------
@@ -763,16 +839,21 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
   $('w-add').addEventListener('click', () => {
     const v = parseFloat($('w-today').value);
     if (!isFinite(v) || v < 35 || v > 300) { $('w-status').textContent = 'اكتب وزنك بين 35 و300 كغ.'; return; }
+    const prev = weightLog.length ? weightLog[weightLog.length - 1].w : null;
+    const nw = Math.round(v * 10) / 10;
     const d = dayStart(Date.now());
     weightLog = weightLog.filter((e) => e.d !== d);
-    weightLog.push({ d, w: Math.round(v * 10) / 10 });
+    weightLog.push({ d, w: nw });
     weightLog.sort((a, b) => a.d - b.d);
     saveW(); $('w-today').value = ''; render();
+    if (prev != null && currentDir < 0 && nw < prev) celebrate('نزلت ' + fmt(prev - nw, 1) + ' كغ عن آخر وزن!');
+    if (prev != null && currentDir > 0 && nw > prev) celebrate('زاد وزنك ' + fmt(nw - prev, 1) + ' كغ نحو هدفك!');
+    refreshMotivation(true);
   });
   $('w-today').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $('w-add').click(); } });
   $('w-list').addEventListener('click', (e) => {
     const b = e.target.closest('.xbtn'); if (!b) return;
-    weightLog.splice(+b.dataset.i, 1); saveW(); render();
+    weightLog.splice(+b.dataset.i, 1); saveW(); render(); refreshMotivation(false);
   });
   let resetArmed = false, resetTimer = 0;
   $('w-reset').addEventListener('click', () => {
@@ -784,7 +865,7 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
       return;
     }
     clearTimeout(resetTimer); disarm();
-    planStart = dayStart(Date.now()); weightLog = []; saveW(); render();
+    planStart = dayStart(Date.now()); weightLog = []; saveW(); render(); refreshMotivation(false);
     $('w-status').textContent = 'بدأت خطة جديدة من اليوم. حدّث وزن البداية في بياناتك.';
   });
 
@@ -797,7 +878,14 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
     ['تفاحة', 95], ['موزة', 105]
   ];
   $('quick').innerHTML = QUICK.map((q, i) => '<button type="button" class="chip" data-i="' + i + '"><span>' + q[0] + '</span><b>' + fmt(q[1]) + '</b></button>').join('');
-  function addMeal(name, kcal) { mealLog.push({ name, kcal, t: Date.now() }); saveLog(); renderLog(); }
+  function addMeal(name, kcal, extra) {
+    const before = mealLog.reduce((a, m) => a + (m.kcal || 0), 0);
+    mealLog.push(Object.assign({ name, kcal, t: Date.now() }, extra || {}));
+    saveLog(); renderLog();
+    const after = before + kcal, lo = 0.9 * currentTarget, hi = 1.05 * currentTarget;
+    if (currentTarget && before < lo && after >= lo && after <= hi) celebrate('وصلت هدف اليوم بالضبط!');
+    refreshMotivation(true);
+  }
   function mMsg(t, err) { const m = $('m-msg'); m.textContent = t; m.classList.toggle('err', !!err); }
   $('quick').addEventListener('click', (e) => {
     const b = e.target.closest('.chip'); if (!b) return;
@@ -828,9 +916,12 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
   $('cups').addEventListener('click', (e) => {
     const b = e.target.closest('.cup'); if (!b) return;
     const i = +b.dataset.i;
+    const prevW = waterCount;
     waterCount = (i + 1 === waterCount) ? i : i + 1;
     try { localStorage.setItem(waterKey(), String(waterCount)); } catch (err) {}
     renderWater();
+    if (prevW < waterGoal && waterCount >= waterGoal) celebrate('كمّلت ماء اليوم!');
+    refreshMotivation(true);
   });
 
   const samplePromise = window.claude ? window.claude.use('sample').catch(() => null) : Promise.resolve(null);
@@ -933,15 +1024,164 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
   }
   $('snap-out').addEventListener('click', (e) => {
     const b = e.target.closest('#snap-add'); if (!b || !snapResult) return;
-    mealLog.push({ name: snapResult.name, kcal: snapResult.kcal, p: snapResult.p, c: snapResult.c, f: snapResult.f, t: Date.now() });
-    saveLog(); renderLog();
+    addMeal(snapResult.name, snapResult.kcal, { p: snapResult.p, c: snapResult.c, f: snapResult.f });
     b.disabled = true; b.textContent = 'أضيفت إلى سجل اليوم';
   });
 
-  $('f').addEventListener('input', render);
-  $('f').addEventListener('change', render);
+  // ---------- motivation: streak, savings, badges, celebrations ----------
+  const DAYL = ['ح', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'];
+  const ds = (d) => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+  function dayStats() {
+    const meals = {}, waters = {};
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.indexOf('meal-log-') === 0) {
+          const arr = JSON.parse(localStorage.getItem(k) || '[]');
+          if (Array.isArray(arr)) meals[k.slice(9)] = { total: arr.reduce((a, m) => a + (m.kcal || 0), 0), n: arr.length };
+        } else if (k && k.indexOf('water-') === 0) {
+          waters[k.slice(6)] = Number(localStorage.getItem(k)) || 0;
+        }
+      }
+    } catch (e) {}
+    const today = ds(new Date());
+    meals[today] = { total: mealLog.reduce((a, m) => a + (m.kcal || 0), 0), n: mealLog.length };
+    waters[today] = waterCount;
+    return { meals, waters, today };
+  }
+  function metDay(st) {
+    if (!st || !st.n || !currentTarget) return false;
+    return currentDir > 0 ? st.total >= 0.9 * currentTarget : (st.total >= 0.7 * currentTarget && st.total <= 1.1 * currentTarget);
+  }
+  const BADGES = [
+    { id: 'meal1', name: 'البداية', desc: 'سجّل أول وجبة', icon: 'bowl', test: (d) => d.meals >= 1 },
+    { id: 'meal10', name: '10 وجبات', desc: 'سجّل 10 وجبات', icon: 'bowl', test: (d) => d.meals >= 10 },
+    { id: 'meal50', name: '50 وجبة', desc: 'سجّل 50 وجبة', icon: 'bowl', test: (d) => d.meals >= 50 },
+    { id: 'st3', name: '3 أيام نار', desc: 'التزم 3 أيام ورا بعض', icon: 'flame', test: (d) => d.best >= 3 },
+    { id: 'st7', name: 'أسبوع حديد', desc: 'التزم 7 أيام ورا بعض', icon: 'flame', test: (d) => d.best >= 7 },
+    { id: 'st30', name: 'شهر أسطوري', desc: 'التزم 30 يوم ورا بعض', icon: 'trophy', test: (d) => d.best >= 30 },
+    { id: 'water1', name: 'مرتوي', desc: 'كمّل أكواب الماء يوم كامل', icon: 'drop', test: (d) => d.waterDays >= 1 },
+    { id: 'water7', name: 'نهر جاري', desc: 'كمّل الماء 7 أيام', icon: 'drop', test: (d) => d.waterDays >= 7 },
+    { id: 'w1', name: 'على الميزان', desc: 'سجّل وزنك أول مرة', icon: 'scale', test: (d) => d.weighIns >= 1 },
+    { id: 'kg1', name: 'أول كيلو', desc: 'أول كيلو نحو هدفك', icon: 'star', test: (d) => d.kgDone >= 1 },
+    { id: 'half', name: 'نص الطريق', desc: 'وصلت نص المسافة لهدفك', icon: 'target', test: (d) => d.progress >= 0.5 },
+    { id: 'goal', name: 'البطل', desc: 'وصلت لوزنك المستهدف', icon: 'trophy', test: (d) => d.progress >= 1 },
+    { id: 'save', name: 'كيلو موفّر', desc: 'وفّر 7,700 سعرة', icon: 'bolt', test: (d) => d.saved >= 7700 }
+  ];
+  let earned = {};
+  try { earned = JSON.parse(localStorage.getItem('badges') || '{}') || {}; } catch (e) { earned = {}; }
+  let bestStreak = 0;
+  try { bestStreak = Number(localStorage.getItem('best-streak')) || 0; } catch (e) {}
+
+  function refreshMotivation(action) {
+    if (!currentS) return;
+    const st = dayStats();
+    const base = new Date(); base.setHours(12, 0, 0, 0);
+    const todayMet = metDay(st.meals[st.today]);
+    let streak = 0;
+    const c = new Date(base);
+    if (!todayMet) c.setDate(c.getDate() - 1);
+    while (streak < 2000 && metDay(st.meals[ds(c)])) { streak++; c.setDate(c.getDate() - 1); }
+    if (streak > bestStreak) { bestStreak = streak; try { localStorage.setItem('best-streak', String(bestStreak)); } catch (e) {} }
+    $('st-num').textContent = fmt(streak);
+    $('st-best').textContent = 'أفضل سلسلة: ' + fmt(bestStreak) + (bestStreak === 1 ? ' يوم' : ' أيام');
+    $('st-hint').textContent = todayMet
+      ? 'اليوم محسوب في سلسلتك. كمّل كذا بكرة.'
+      : (streak ? 'سجّل وجباتك اليوم وخلك قريب من هدفك عشان ما تنقطع السلسلة.' : 'سجّل وجباتك وخلك قريب من هدفك اليومي، وتبدأ سلسلتك.');
+    $('streak').classList.toggle('hot', streak > 0);
+    let wk = '';
+    for (let i = 6; i >= 0; i--) {
+      const x = new Date(base); x.setDate(x.getDate() - i);
+      const ok = metDay(st.meals[ds(x)]);
+      wk += '<div class="wd' + (ok ? ' ok' : '') + (i === 0 ? ' now' : '') + '" title="' + x.toLocaleDateString('ar-u-nu-latn', { weekday: 'long', day: 'numeric', month: 'long' }) + (ok ? ' · ملتزم' : '') + '"><i></i><span>' + DAYL[x.getDay()] + '</span></div>';
+    }
+    $('st-week').innerHTML = wk;
+
+    let saved = 0, mealsN = 0;
+    Object.keys(st.meals).forEach((k) => {
+      const m = st.meals[k];
+      mealsN += m.n;
+      if (k === st.today || !m.n) return;
+      saved += currentDir > 0 ? Math.max(0, m.total - currentTdee) : Math.max(0, currentTdee - m.total);
+    });
+    saved = Math.round(saved);
+    $('saved').hidden = currentDir === 0;
+    if (currentDir !== 0) {
+      animateNum($('sv-num'), saved);
+      $('sv-lbl').textContent = currentDir < 0 ? 'سعرة وفّرتها من بداية الخطة' : 'سعرة زيادة لبناء جسمك';
+      $('sv-eq').innerHTML = currentDir < 0
+        ? 'يعني <b>' + fmt(saved / 550, 1) + '</b> صحن كبسة · <b>' + fmt(saved / 7700, 2) + '</b> كغ دهون'
+        : 'يعني <b>' + fmt(saved / 450, 1) + '</b> ساندويتش شاورما زيادة';
+    }
+
+    const ws = weightLog.map((e) => e.w);
+    let kgDone = 0, progress = 0;
+    if (ws.length && currentDir !== 0) {
+      kgDone = currentDir < 0 ? currentS.w - Math.min(...ws) : Math.max(...ws) - currentS.w;
+      progress = Math.max(0, Math.min(1, (currentS.w - ws[ws.length - 1]) / (currentS.w - currentS.goal)));
+    }
+    const waterDays = Object.keys(st.waters).filter((k) => st.waters[k] >= waterGoal).length;
+    const data = { meals: mealsN, best: bestStreak, waterDays, weighIns: ws.length, kgDone, progress, saved };
+    const fresh = [];
+    BADGES.forEach((b) => { if (!earned[b.id] && b.test(data)) { earned[b.id] = Date.now(); fresh.push(b.id); } });
+    if (fresh.length) { try { localStorage.setItem('badges', JSON.stringify(earned)); } catch (e) {} }
+    $('bd-count').textContent = fmt(BADGES.filter((b) => earned[b.id]).length) + ' من ' + fmt(BADGES.length);
+    $('badges').innerHTML = BADGES.map((b) => '<div class="badge' + (earned[b.id] ? ' on' : '') + (action && fresh.indexOf(b.id) >= 0 ? ' pop' : '') + '"><div class="bi">' + ico(b.icon) + '</div><b>' + b.name + '</b><span>' + b.desc + '</span></div>').join('');
+    if (action && fresh.length) celebrate('شارة جديدة: ' + BADGES.filter((b) => fresh.indexOf(b.id) >= 0).map((b) => b.name).join('، '));
+  }
+
+  let toastTimer = 0, toastMsgs = [], confettiOn = false;
+  function celebrate(msg) {
+    const t = $('toast');
+    toastMsgs.push(msg);
+    t.textContent = toastMsgs.join(' · ');
+    t.hidden = false;
+    t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.hidden = true; toastMsgs = []; }, 3800);
+    confetti();
+  }
+  function confetti() {
+    if (reduceMotion || confettiOn) return;
+    confettiOn = true;
+    const cv = document.createElement('canvas');
+    cv.className = 'confetti';
+    cv.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(cv);
+    const dpr = window.devicePixelRatio || 1, W = window.innerWidth, H = window.innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    const g = cv.getContext('2d');
+    g.scale(dpr, dpr);
+    const cs = getComputedStyle(root);
+    const cols = ['--lime', '--cyan', '--pink', '--flame'].map((v) => cs.getPropertyValue(v).trim()).concat(['#FFFFFF']);
+    const ps = Array.from({ length: 150 }, () => ({
+      x: W / 2 + (Math.random() - 0.5) * W * 0.4, y: H * 0.4,
+      vx: (Math.random() - 0.5) * 14, vy: -Math.random() * 13 - 5,
+      s: Math.random() * 7 + 5, r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.35,
+      c: cols[Math.floor(Math.random() * cols.length)]
+    }));
+    const t0 = performance.now();
+    const frame = (t) => {
+      const k = (t - t0) / 2000;
+      g.clearRect(0, 0, W, H);
+      ps.forEach((p) => {
+        p.vy += 0.32; p.vx *= 0.99; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+        g.save(); g.translate(p.x, p.y); g.rotate(p.r);
+        g.globalAlpha = Math.max(0, 1 - k * k);
+        g.fillStyle = p.c; g.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2);
+        g.restore();
+      });
+      if (k < 1) requestAnimationFrame(frame); else { cv.remove(); confettiOn = false; }
+    };
+    requestAnimationFrame(frame);
+  }
+
+  const onForm = () => { render(); refreshMotivation(false); };
+  $('f').addEventListener('input', onForm);
+  $('f').addEventListener('change', onForm);
   $('f').addEventListener('submit', (e) => e.preventDefault());
   render();
+  refreshMotivation(false);
 })();
 </script>
 
