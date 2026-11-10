@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Readex+Pro:wght@400;600;700&display=swap">
 <style>
-/* Layout: neon gym — dark training-floor ground, a big lime "target" hero, form column right (RTL), results left; stacks on phones */
+/* Layout: app shell — four views (today, plan, progress, awards) behind a tab bar: bottom bar on phones, floating pill bar on desktop. Neon gym palette, dark first. */
 :root {
   --bg: #0D0D1F;
   --glow-a: rgba(0, 217, 255, 0.13);
@@ -25,9 +25,10 @@
   --cyan-ink: #00D9FF;
   --pink: #FF4FD8;
   --pink-ink: #FF6FE0;
+  --flame: #FF8A3D;
+  --fy: #FFD43B;
   --warn: #FFB547;
   --warn-soft: #33260F;
-  --flame: #FF8A3D;
   --shadow: 0 0 0 1px rgba(198, 255, 61, 0.35), 0 0 32px rgba(198, 255, 61, 0.16);
   --font-display: "Readex Pro", "Segoe UI", Tahoma, sans-serif;
   --font-body: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
@@ -49,9 +50,10 @@
   --cyan-ink: #007E99;
   --pink: #F03CC8;
   --pink-ink: #B8168F;
+  --flame: #E0620F;
+  --fy: #E5B000;
   --warn: #A55A00;
   --warn-soft: #FFF0DA;
-  --flame: #E0620F;
   --shadow: 0 0 0 1px rgba(74, 133, 0, 0.35), 0 10px 30px rgba(20, 20, 43, 0.08);
   color-scheme: light;
 }
@@ -66,35 +68,66 @@ body {
   font-family: var(--font-body); font-size: 15px; line-height: 1.7;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 24px 48px;
+  padding-block: 20px calc(100px + env(safe-area-inset-bottom, 0px));
   min-height: 100%;
 }
-.wrap { max-width: 1140px; margin: 0 auto; display: flex; flex-direction: column; gap: 26px; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 45; background: var(--bg); }
+.wrap { max-width: 1140px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
 h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.3; }
-h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 700; letter-spacing: -0.01em; }
-h2 { font-size: 1.12rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+h1 { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
 h2 .ico { color: var(--lime-ink); }
 svg.ico { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.hint { font-size: 0.8rem; color: var(--muted); margin: 0; }
+.subh { font-family: var(--font-display); font-size: 0.98rem; font-weight: 600; margin: 0; }
 
+/* header + tabs */
 header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-.brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
-.logo { width: 48px; height: 48px; border-radius: 14px; background: var(--lime); color: var(--on-lime); display: grid; place-items: center; flex: none; box-shadow: 0 0 24px rgba(198, 255, 61, 0.35); }
-.logo svg { width: 26px; height: 26px; fill: currentColor; stroke: none; }
-header p { margin: 2px 0 0; color: var(--muted); max-width: 60ch; font-size: 0.92rem; }
-.theme-btn { font: inherit; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 999px; padding: 8px 14px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.logo { width: 44px; height: 44px; border-radius: 14px; background: var(--lime); color: var(--on-lime); display: grid; place-items: center; flex: none; box-shadow: 0 0 24px rgba(198, 255, 61, 0.35); }
+.logo svg { width: 24px; height: 24px; fill: currentColor; stroke: none; }
+header p { margin: 0; color: var(--muted); font-size: 0.85rem; }
+.theme-btn { font: inherit; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 999px; padding: 7px 13px; cursor: pointer; font-size: 0.82rem; font-weight: 600; }
 .theme-btn:hover { border-color: var(--cyan-ink); }
+.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border-top: 1px solid var(--line);
+  padding-top: 6px; padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(8px, env(safe-area-inset-left, 0px)); padding-right: max(8px, env(safe-area-inset-right, 0px));
+}
+.tabs a { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px; border-radius: 12px; color: var(--muted); text-decoration: none; font-size: 0.74rem; font-weight: 600; transition: color .15s, background .15s; }
+.tabs a svg { width: 22px; height: 22px; }
+.tabs a.on { color: var(--lime-ink); }
+.tabs a.on svg { filter: drop-shadow(0 0 6px rgba(198, 255, 61, .55)); }
+.tabs a:focus-visible { outline: 2px solid var(--cyan-ink); outline-offset: 1px; }
+@media (min-width: 881px) {
+  body { padding-block: 20px 48px; }
+  .tabs { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); left: auto; right: auto; bottom: auto; display: flex; width: max-content; max-width: 100%; margin-inline: auto; border: 1px solid var(--line); border-radius: 999px; padding: 6px; box-shadow: 0 10px 30px rgba(0, 0, 0, .25); }
+  .tabs a { flex-direction: row; gap: 8px; padding: 8px 18px; border-radius: 999px; font-size: 0.92rem; }
+  .tabs a svg { width: 19px; height: 19px; }
+  .tabs a:hover { color: var(--fg); }
+  .tabs a.on { background: var(--lime); color: var(--on-lime); }
+  .tabs a.on svg { filter: none; }
+}
 
-.grid { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 22px; align-items: start; }
-@media (max-width: 880px) { .grid { grid-template-columns: minmax(0, 1fr); } }
-
-/* form */
-form { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 16px; }
-@media (min-width: 881px) { form { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); } }
-.form-title { font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; }
-.form-title .ico { color: var(--cyan-ink); }
-.field { display: flex; flex-direction: column; gap: 6px; }
+/* shared blocks */
+.view { display: flex; flex-direction: column; gap: 20px; }
+.cols { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.col { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+@media (max-width: 880px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; transition: border-color .2s; }
+.panel:hover { border-color: color-mix(in srgb, var(--cyan) 35%, var(--line)); }
+.pill { font-size: 0.75rem; font-weight: 600; padding: 4px 12px; border-radius: 999px; background: color-mix(in srgb, var(--cyan) 16%, transparent); color: var(--cyan-ink); white-space: nowrap; }
+.pill.off { background: var(--warn-soft); color: var(--warn); }
+.pill.lime { background: var(--lime); color: var(--on-lime); }
+.head-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 label, .lbl { font-size: 0.84rem; font-weight: 600; color: var(--muted); }
+.unit { font-weight: 400; color: var(--muted); font-size: 0.78rem; }
 input[type=number], input[type=text], select {
   font: inherit; color: var(--fg); background: var(--surface-2);
   border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; width: 100%;
@@ -104,192 +137,229 @@ input[type=number] { font-variant-numeric: tabular-nums; font-weight: 600; }
 input:focus-visible, select:focus-visible { outline: none; border-color: var(--cyan-ink); box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.2); }
 .seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 4px; gap: 4px; }
 .seg.four { grid-template-columns: repeat(4, 1fr); }
-.seg label { text-align: center; padding: 7px 4px; border-radius: 9px; cursor: pointer; color: var(--fg); font-weight: 600; font-size: 0.9rem; transition: background .15s, color .15s; }
-.seg label:hover { background: var(--surface); }
+.seg label, .seg button { font: inherit; border: 0; background: none; text-align: center; padding: 7px 4px; border-radius: 9px; cursor: pointer; color: var(--fg); font-weight: 600; font-size: 0.88rem; transition: background .15s, color .15s; }
+.seg label:hover, .seg button:hover { background: var(--surface); }
 .seg input { position: absolute; opacity: 0; pointer-events: none; }
-.seg label:has(input:checked) { background: var(--lime); color: var(--on-lime); }
-.seg label:has(input:focus-visible) { outline: 2px solid var(--cyan-ink); outline-offset: 1px; }
-.unit { font-weight: 400; color: var(--muted); font-size: 0.78rem; }
-.hint { font-size: 0.8rem; color: var(--muted); margin: 0; }
-
-/* results */
-.results { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
-.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 16px; min-width: 0; transition: border-color .2s, transform .2s; }
-.panel:hover { border-color: color-mix(in srgb, var(--cyan) 35%, var(--line)); }
-
-.hero { background: var(--surface); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; gap: 18px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
-.hero::after { content: ""; position: absolute; inset: auto -60px -80px auto; width: 240px; height: 240px; border-radius: 50%; background: radial-gradient(closest-side, rgba(198, 255, 61, 0.18), transparent); pointer-events: none; }
-.hero-main { display: flex; flex-direction: column; gap: 2px; position: relative; z-index: 1; }
-.hero-main .k { font-size: 0.85rem; color: var(--muted); font-weight: 600; letter-spacing: 0.02em; }
-.hero-num { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-.hero-num .v { font-family: var(--font-display); font-weight: 700; font-size: clamp(3rem, 9vw, 4.6rem); line-height: 1; color: var(--lime-ink); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
-.hero-num small { font-size: 1rem; color: var(--muted); font-weight: 600; }
-.goalline { font-size: 1rem; margin: 6px 0 0; }
-.goalline strong { font-family: var(--font-display); color: var(--cyan-ink); font-weight: 600; }
-.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; position: relative; z-index: 1; }
-@media (max-width: 560px) { .stats { grid-template-columns: minmax(0, 1fr); } }
-.stat { display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; border-radius: 16px; background: var(--surface-2); }
-.stat .k { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
-.stat .v { font-family: var(--font-display); font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.25; }
-.stat .s { font-size: 0.78rem; color: var(--muted); }
-.notice { background: var(--warn-soft); color: var(--warn); border-radius: 12px; padding: 10px 14px; font-size: 0.88rem; position: relative; z-index: 1; }
-
-.chart-box { overflow-x: auto; }
-#chart { display: block; width: 100%; height: auto; min-width: 480px; }
-.ax { stroke: var(--line); stroke-width: 1; }
-.axt { fill: var(--muted); font-size: 11px; font-family: var(--font-body); }
-.ln { fill: none; stroke: url(#lnGrad); stroke-width: 3.5; stroke-linejoin: round; stroke-linecap: round; }
-.gl { stroke: var(--lime-ink); stroke-dasharray: 5 5; stroke-width: 1.5; }
-.glt { fill: var(--lime-ink); font-size: 11.5px; font-weight: 600; font-family: var(--font-body); }
-.dot { fill: var(--surface); stroke: var(--cyan); stroke-width: 3; }
-.dot.end { stroke: var(--lime-ink); fill: var(--lime); }
-@media (prefers-reduced-motion: no-preference) {
-  .ln.draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 1.1s ease-out forwards; }
-  @keyframes draw { to { stroke-dashoffset: 0; } }
-}
-
-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 0.92rem; }
-th, td { text-align: right; padding: 10px 8px; border-bottom: 1px solid var(--line); }
-th { font-size: 0.78rem; color: var(--muted); font-weight: 600; }
-tr:last-child td { border-bottom: 0; }
-tbody tr:last-child td:first-child { color: var(--lime-ink); font-weight: 600; }
-.tbl { overflow-x: auto; }
-
-.macros { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-@media (max-width: 560px) { .macros { grid-template-columns: minmax(0, 1fr); } }
-.macro { background: var(--surface-2); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 6px; border: 1px solid transparent; transition: transform .2s, border-color .2s; }
-.macro:hover { transform: translateY(-2px); border-color: var(--mc); }
-.macro .n { font-weight: 600; font-size: 0.9rem; color: var(--muted); }
-.macro .g { font-family: var(--font-display); font-size: 1.9rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--mc-ink); line-height: 1.1; }
-.macro .g small { font-size: 0.95rem; font-weight: 600; }
-.macro .track { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
-.macro .track span { display: block; height: 100%; background: var(--mc); border-radius: 3px; transition: width .5s ease; }
-.macro .c { font-size: 0.8rem; color: var(--muted); }
-
-.meals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-@media (max-width: 620px) { .meals { grid-template-columns: minmax(0, 1fr); } }
-.meal { background: var(--surface-2); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 6px; transition: transform .2s; }
-.meal:hover { transform: translateY(-2px); }
-.meal .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.meal h3 { font-size: 1rem; font-weight: 600; }
-.meal .kc { font-variant-numeric: tabular-nums; background: var(--lime); color: var(--on-lime); font-weight: 700; font-size: 0.82rem; white-space: nowrap; padding: 2px 10px; border-radius: 999px; }
-.meal p { margin: 0; color: var(--muted); font-size: 0.88rem; }
-
-.habits { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-.habits li { display: flex; gap: 12px; align-items: flex-start; background: var(--surface-2); border-radius: 16px; padding: 14px; }
-.habits .hi { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: color-mix(in srgb, var(--cyan) 16%, transparent); color: var(--cyan-ink); flex: none; }
-.habits b { display: block; font-family: var(--font-display); font-weight: 600; font-variant-numeric: tabular-nums; }
-.habits span { font-size: 0.86rem; color: var(--muted); }
-
-/* meal photo */
-.snap-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
-.pill { font-size: 0.75rem; font-weight: 600; padding: 4px 12px; border-radius: 999px; background: color-mix(in srgb, var(--cyan) 16%, transparent); color: var(--cyan-ink); white-space: nowrap; }
-.pill.off { background: var(--warn-soft); color: var(--warn); }
-.pill.lime { background: var(--lime); color: var(--on-lime); }
-.snap-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
-@media (max-width: 620px) { .snap-grid { grid-template-columns: minmax(0, 1fr); } }
-.drop { border: 2px dashed var(--line); border-radius: 18px; min-height: 220px; display: grid; place-items: center; overflow: hidden; background: var(--surface-2); transition: border-color .2s, background .2s; }
-.drop.over { border-color: var(--lime-ink); background: color-mix(in srgb, var(--lime) 10%, var(--surface-2)); }
-.drop img { width: 100%; height: 100%; max-height: 300px; object-fit: cover; display: block; }
-.drop-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; color: var(--muted); font-size: 0.88rem; padding: 20px; text-align: center; }
-.drop-empty svg { width: 46px; height: 46px; color: var(--cyan-ink); }
-.snap-side { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.seg label:has(input:checked), .seg button[aria-pressed="true"] { background: var(--lime); color: var(--on-lime); }
+.seg label:has(input:focus-visible), .seg button:focus-visible { outline: 2px solid var(--cyan-ink); outline-offset: 1px; }
 .btn { font: inherit; font-weight: 600; font-size: 0.93rem; cursor: pointer; border-radius: 14px; padding: 11px 16px; text-align: center; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: transform .12s, border-color .15s, box-shadow .15s; }
 .btn:hover { border-color: var(--cyan-ink); }
 .btn:active { transform: scale(0.98); }
 .btn.primary { background: var(--lime); border-color: var(--lime); color: var(--on-lime); }
 .btn.primary:hover { box-shadow: 0 0 22px rgba(198, 255, 61, 0.4); }
-.btn.big { padding: 16px; font-size: 1.05rem; border-radius: 16px; }
+.btn.big { padding: 15px; font-size: 1.02rem; border-radius: 16px; }
 .btn.big svg { width: 24px; height: 24px; }
 .btn:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
-.btn:focus-visible, .xbtn:focus-visible, .theme-btn:focus-visible { outline: 2px solid var(--cyan-ink); outline-offset: 2px; }
-.snap-msg { font-size: 0.88rem; color: var(--muted); margin: 0; min-height: 1.2em; }
-.snap-msg.err { color: var(--warn); }
-.snap-out { display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--line); padding-top: 16px; }
-.snap-total { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 8px; }
-.snap-total .big { font-family: var(--font-display); font-size: 2.3rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.05; color: var(--lime-ink); }
-
-.daylog { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 20px; align-items: center; background: var(--surface-2); border-radius: 18px; padding: 18px; }
-@media (max-width: 520px) { .daylog { grid-template-columns: minmax(0, 1fr); justify-items: center; } .daylog .log-body { width: 100%; } }
-.ring { position: relative; width: 140px; height: 140px; }
-.ring svg { width: 140px; height: 140px; transform: rotate(-90deg); }
-.ring .bgc { fill: none; stroke: var(--line); stroke-width: 12; }
-.ring .fgc { fill: none; stroke: var(--lime); stroke-width: 12; stroke-linecap: round; transition: stroke-dasharray .6s ease; }
-.ring.over .fgc { stroke: var(--pink); }
-.ring .mid { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-.ring .mid b { font-family: var(--font-display); font-size: 1.6rem; font-variant-numeric: tabular-nums; line-height: 1.1; }
-.ring .mid span { font-size: 0.74rem; color: var(--muted); }
-.log-body { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-.log-body h3 { font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.log-body p { margin: 0; font-size: 0.92rem; }
+.btn:focus-visible, .xbtn:focus-visible, .theme-btn:focus-visible, .chip:focus-visible, .cup:focus-visible, .linkbtn:focus-visible { outline: 2px solid var(--cyan-ink); outline-offset: 2px; }
+.msg { font-size: 0.86rem; color: var(--muted); margin: 0; min-height: 1.2em; }
+.msg.err { color: var(--warn); }
+.notice { background: var(--warn-soft); color: var(--warn); border-radius: 12px; padding: 10px 14px; font-size: 0.88rem; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 0.92rem; }
+th, td { text-align: right; padding: 10px 8px; border-bottom: 1px solid var(--line); }
+th { font-size: 0.78rem; color: var(--muted); font-weight: 600; }
+tr:last-child td { border-bottom: 0; }
+.tbl { overflow-x: auto; }
 .loglist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
-.loglist li { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 0.92rem; }
+.loglist li { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 0.92rem; }
 .loglist li:last-child { border-bottom: 0; }
-.loglist li > span:first-child { flex: 1; min-width: 0; }
+.loglist .nm { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; }
 .loglist .kc { font-variant-numeric: tabular-nums; color: var(--lime-ink); font-weight: 600; white-space: nowrap; }
-.loglist .empty { color: var(--muted); }
+.loglist .kc.ex { color: var(--cyan-ink); }
+.loglist .empty { color: var(--muted); display: block; }
 .xbtn { font: inherit; border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 1.15rem; line-height: 1; padding: 2px 6px; border-radius: 6px; }
 .xbtn:hover { color: var(--pink-ink); }
-.subh { font-family: var(--font-display); font-size: 0.98rem; font-weight: 600; margin: 0; }
-.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-.chip { font: inherit; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); border-radius: 999px; padding-block: 6px; padding-inline: 14px 6px; cursor: pointer; font-size: 0.88rem; font-weight: 500; transition: border-color .15s, transform .12s, background .2s, color .2s; }
-.chip b { background: var(--surface); color: var(--lime-ink); border-radius: 999px; padding: 1px 9px; font-size: 0.78rem; font-variant-numeric: tabular-nums; }
+.linkbtn { font: inherit; background: none; border: 0; color: var(--muted); text-decoration: underline; cursor: pointer; font-size: .82rem; align-self: flex-start; padding: 2px 0; }
+.linkbtn.confirm { color: var(--pink-ink); }
+.fd { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; }
+.fd.g { background: var(--lime); } .fd.y { background: var(--fy); } .fd.o { background: var(--flame); } .fd.x { background: var(--cyan); }
+
+/* today hero: rings + equation */
+.today-hero { background: var(--surface); border-radius: 26px; padding: 22px; display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 22px; align-items: center; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+.today-hero::after { content: ""; position: absolute; inset: -90px auto auto -70px; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(closest-side, rgba(0, 217, 255, 0.14), transparent); pointer-events: none; }
+@media (max-width: 600px) { .today-hero { grid-template-columns: minmax(0, 1fr); justify-items: center; } .hero-side { width: 100%; } }
+.rings { position: relative; width: 210px; height: 210px; max-width: 100%; z-index: 1; }
+.rings svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.rings circle { fill: none; stroke-width: 17; stroke-linecap: round; }
+.rings .tr-c { stroke: color-mix(in srgb, var(--lime) 15%, transparent); }
+.rings .tr-p { stroke: color-mix(in srgb, var(--cyan) 15%, transparent); }
+.rings .tr-w { stroke: color-mix(in srgb, var(--pink) 15%, transparent); }
+.rings .fg { transition: stroke-dasharray .8s cubic-bezier(.2, .8, .2, 1), opacity .3s; }
+#ring-cal { stroke: var(--lime); } #ring-pro { stroke: var(--cyan); } #ring-wat { stroke: var(--pink); }
+.rings.over #ring-cal { stroke: var(--flame); }
+.rings .mid { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.rings .mid b { font-family: var(--font-display); font-size: 2.3rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.rings .mid span { font-size: 0.72rem; color: var(--muted); font-weight: 600; }
+.rings .mid em { font-style: normal; font-size: 0.72rem; font-weight: 700; color: var(--lime-ink); margin-top: 2px; }
+.hero-side { display: flex; flex-direction: column; gap: 14px; min-width: 0; position: relative; z-index: 1; }
+.big-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.big { display: flex; flex-direction: column; }
+.big b { font-family: var(--font-display); font-weight: 700; font-size: clamp(2.6rem, 8vw, 3.8rem); line-height: 1; color: var(--lime-ink); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.big b.over { color: var(--flame); }
+.big small { font-size: 0.9rem; color: var(--muted); font-weight: 600; margin-top: 4px; }
+.vt { width: 170px; }
+.eq { display: flex; align-items: center; justify-content: space-between; gap: 6px; background: var(--surface-2); border-radius: 16px; padding: 10px 12px; }
+.eq div { display: flex; flex-direction: column; align-items: center; min-width: 0; }
+.eq b { font-family: var(--font-display); font-variant-numeric: tabular-nums; font-size: 1.02rem; font-weight: 600; }
+.eq span { font-size: 0.7rem; color: var(--muted); }
+.eq i { font-style: normal; color: var(--muted); font-weight: 700; }
+.eq .res b { color: var(--lime-ink); }
+.legend3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.legend3 div { display: flex; flex-direction: column; gap: 1px; }
+.legend3 span { font-size: 0.74rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.legend3 b { font-variant-numeric: tabular-nums; font-size: 0.9rem; }
+
+/* add food */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: inherit; display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); border-radius: 999px; padding-block: 6px; padding-inline: 12px 6px; cursor: pointer; font-size: 0.86rem; font-weight: 500; transition: border-color .15s, transform .12s, background .2s, color .2s; }
+.chip b { background: var(--surface); color: var(--lime-ink); border-radius: 999px; padding: 1px 9px; font-size: 0.76rem; font-variant-numeric: tabular-nums; }
+.chip.ex b { color: var(--cyan-ink); }
 .chip:hover { border-color: var(--lime-ink); }
 .chip:active { transform: scale(.96); }
 .chip.added { background: var(--lime); color: var(--on-lime); border-color: var(--lime); }
+.chip.added .fd { background: var(--on-lime); }
 .manual { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto; gap: 10px; align-items: end; }
 @media (max-width: 520px) { .manual { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .manual .btn { grid-column: 1 / -1; } }
-.water { background: var(--surface-2); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-.water-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-.water-head span { font-size: .88rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.mixbar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: var(--line); }
+.mixbar span { display: block; height: 100%; transition: width .5s ease; }
+.mixkey { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.78rem; color: var(--muted); }
+.mixkey span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* water */
 .cups { display: flex; flex-wrap: wrap; gap: 8px; }
-.cup { width: 42px; height: 50px; border-radius: 10px 10px 14px 14px; border: 2px solid var(--line); background: transparent; cursor: pointer; display: grid; place-items: center; color: var(--muted); transition: background .2s, border-color .2s, color .2s; }
-.cup svg { width: 20px; height: 20px; }
-.cup.on { background: color-mix(in srgb, var(--cyan) 22%, transparent); border-color: var(--cyan); color: var(--cyan-ink); }
-.cup:focus-visible, .chip:focus-visible, .linkbtn:focus-visible { outline: 2px solid var(--cyan-ink); outline-offset: 2px; }
-.wlog { display: flex; flex-direction: column; gap: 10px; background: var(--surface-2); border-radius: 18px; padding: 16px; }
-.wlog input { background: var(--surface); }
-.wlog-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end; }
-.wlog .loglist .kc { color: var(--pink-ink); }
+.cup { width: 40px; height: 48px; border-radius: 10px 10px 14px 14px; border: 2px solid var(--line); background: transparent; cursor: pointer; display: grid; place-items: center; color: var(--muted); transition: background .2s, border-color .2s, color .2s, transform .12s; }
+.cup:active { transform: scale(.94); }
+.cup svg { width: 19px; height: 19px; }
+.cup.on { background: color-mix(in srgb, var(--pink) 20%, transparent); border-color: var(--pink); color: var(--pink-ink); }
+
+/* photo */
+.snap-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+@media (max-width: 1080px) { .snap-grid { grid-template-columns: minmax(0, 1fr); } }
+.drop { border: 2px dashed var(--line); border-radius: 18px; min-height: 180px; display: grid; place-items: center; overflow: hidden; background: var(--surface-2); transition: border-color .2s, background .2s; }
+.drop.over { border-color: var(--lime-ink); background: color-mix(in srgb, var(--lime) 10%, var(--surface-2)); }
+.drop img { width: 100%; height: 100%; max-height: 280px; object-fit: cover; display: block; }
+.drop-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; color: var(--muted); font-size: 0.86rem; padding: 18px; text-align: center; }
+.drop-empty svg { width: 42px; height: 42px; color: var(--cyan-ink); }
+.snap-side { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.snap-out { display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--line); padding-top: 14px; }
+.snap-total { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 8px; }
+.snap-total .bigk { font-family: var(--font-display); font-size: 2.2rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.05; color: var(--lime-ink); }
+
+/* plan view */
+.plan-grid { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 880px) { .plan-grid { grid-template-columns: minmax(0, 1fr); } }
+form { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+@media (min-width: 881px) { form { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 80px); } }
+.hero { background: var(--surface); border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 16px; box-shadow: var(--shadow); }
+.hero-main .k { font-size: 0.85rem; color: var(--muted); font-weight: 600; }
+.hero-num { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.hero-num .v { font-family: var(--font-display); font-weight: 700; font-size: clamp(2.8rem, 9vw, 4.2rem); line-height: 1; color: var(--lime-ink); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.hero-num small { font-size: 1rem; color: var(--muted); font-weight: 600; }
+.goalline { font-size: 1rem; margin: 6px 0 0; }
+.goalline strong { font-family: var(--font-display); color: var(--cyan-ink); font-weight: 600; }
+.adj { color: var(--lime-ink); font-weight: 600; font-size: 0.92rem; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 560px) { .stats { grid-template-columns: minmax(0, 1fr); } }
+.stat { display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; border-radius: 16px; background: var(--surface-2); }
+.stat .k { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+.stat .v { font-family: var(--font-display); font-size: 1.45rem; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.25; }
+.stat .s { font-size: 0.78rem; color: var(--muted); }
+.macros { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 560px) { .macros { grid-template-columns: minmax(0, 1fr); } }
+.macro { background: var(--surface-2); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 6px; border: 1px solid transparent; transition: transform .2s, border-color .2s; }
+.macro:hover { transform: translateY(-2px); border-color: var(--mc); }
+.macro .n { font-weight: 600; font-size: 0.9rem; color: var(--muted); }
+.macro .g { font-family: var(--font-display); font-size: 1.85rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--mc-ink); line-height: 1.1; }
+.macro .g small { font-size: 0.95rem; font-weight: 600; }
+.macro .track { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.macro .track span { display: block; height: 100%; background: var(--mc); border-radius: 3px; transition: width .5s ease; }
+.macro .c { font-size: 0.8rem; color: var(--muted); }
+.meals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 620px) { .meals { grid-template-columns: minmax(0, 1fr); } }
+.meal { background: var(--surface-2); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+.meal .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.meal h3 { font-size: 1rem; font-weight: 600; }
+.meal .kc { font-variant-numeric: tabular-nums; background: var(--lime); color: var(--on-lime); font-weight: 700; font-size: 0.82rem; white-space: nowrap; padding: 2px 10px; border-radius: 999px; }
+.meal p { margin: 0; color: var(--muted); font-size: 0.88rem; }
+.habits { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.habits li { display: flex; gap: 12px; align-items: flex-start; background: var(--surface-2); border-radius: 16px; padding: 14px; }
+.habits .hi { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: color-mix(in srgb, var(--cyan) 16%, transparent); color: var(--cyan-ink); flex: none; }
+.habits b { display: block; font-family: var(--font-display); font-weight: 600; font-variant-numeric: tabular-nums; }
+.habits span { font-size: 0.86rem; color: var(--muted); }
+
+/* progress view */
+.chart-box { overflow-x: auto; }
+.chart-box svg { display: block; width: 100%; height: auto; min-width: 460px; }
+.ax { stroke: var(--line); stroke-width: 1; }
+.axt { fill: var(--muted); font-size: 11px; font-family: var(--font-body); }
+.ln { fill: none; stroke: url(#lnGrad); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; opacity: .85; }
+.gl { stroke: var(--lime-ink); stroke-dasharray: 5 5; stroke-width: 1.5; }
+.glt { fill: var(--lime-ink); font-size: 11.5px; font-weight: 600; font-family: var(--font-body); }
+.dot { fill: var(--surface); stroke: var(--cyan); stroke-width: 3; }
+.dot.end { stroke: var(--lime-ink); fill: var(--lime); }
+.sc-line { fill: none; stroke: var(--pink); stroke-width: 1.2; stroke-dasharray: 2 4; opacity: .7; }
+.sc-dot { fill: var(--surface); stroke: var(--pink); stroke-width: 1.8; }
+.tr-line { fill: none; stroke: var(--pink); stroke-width: 3.5; stroke-linejoin: round; stroke-linecap: round; }
+.tr-dot { fill: var(--pink); }
+.bar-ok { fill: var(--lime); } .bar-lg { fill: color-mix(in srgb, var(--muted) 45%, transparent); } .bar-ex { fill: var(--cyan); }
+.bar-now { stroke: var(--cyan-ink); stroke-width: 2; }
+.bar-val { fill: var(--fg); font-size: 11px; font-weight: 600; font-family: var(--font-body); }
+@media (prefers-reduced-motion: no-preference) {
+  .ln.draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 1.1s ease-out forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+}
 .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.8rem; color: var(--muted); }
 .legend i { display: inline-block; width: 18px; height: 4px; border-radius: 2px; vertical-align: middle; margin-inline-end: 6px; }
-.linkbtn { font: inherit; background: none; border: 0; color: var(--muted); text-decoration: underline; cursor: pointer; font-size: .82rem; align-self: flex-start; padding: 2px 0; }
-.linkbtn.confirm { color: var(--pink-ink); }
-.act-line { fill: none; stroke: var(--pink); stroke-width: 2.5; stroke-linejoin: round; }
-.act-dot { fill: var(--pink); stroke: var(--surface); stroke-width: 2; }
-.adj { color: var(--lime-ink); font-weight: 600; font-size: 0.92rem; }
+.wlog-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end; }
+.wbox { display: flex; flex-direction: column; gap: 10px; background: var(--surface-2); border-radius: 18px; padding: 16px; }
+.wbox input { background: var(--surface); }
+.wbox .loglist .kc { color: var(--pink-ink); }
+.saved-num { font-family: var(--font-display); font-size: 2.3rem; font-weight: 700; color: var(--cyan-ink); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.saved-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.saved-row span:last-child { font-weight: 600; }
+#sv-eq { margin: 0; }
+#sv-eq b { color: var(--lime-ink); font-variant-numeric: tabular-nums; }
+.heat-box { overflow-x: auto; }
+.heat { display: grid; grid-template-rows: repeat(7, 16px); grid-auto-flow: column; grid-auto-columns: 16px; gap: 4px; width: max-content; }
+.heat i { width: 16px; height: 16px; border-radius: 4px; background: var(--surface-2); display: block; }
+.heat i.h1 { background: color-mix(in srgb, var(--lime) 30%, var(--surface-2)); }
+.heat i.h2 { background: var(--lime); }
+.heat i.hf { background: var(--cyan); }
+.heat i.now { outline: 2px solid var(--fg); outline-offset: 1px; }
+.heat i.pad { visibility: hidden; }
+
+/* awards view */
 .moti-top { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
 .streak { display: flex; align-items: center; gap: 14px; }
-.flame { width: 58px; height: 58px; border-radius: 18px; display: grid; place-items: center; background: var(--surface-2); color: var(--muted); }
-.flame svg { width: 32px; height: 32px; }
+.flame { width: 62px; height: 62px; border-radius: 20px; display: grid; place-items: center; background: var(--surface-2); color: var(--muted); }
+.flame svg { width: 34px; height: 34px; }
 .streak.hot .flame { background: color-mix(in srgb, var(--flame) 20%, transparent); color: var(--flame); }
 @media (prefers-reduced-motion: no-preference) {
   .streak.hot .flame svg { animation: flick 1.6s ease-in-out infinite; transform-origin: 50% 90%; }
   @keyframes flick { 50% { transform: scale(1.1) rotate(-4deg); } }
 }
 .st-line { display: flex; align-items: baseline; gap: 8px; }
-.st-line b { font-family: var(--font-display); font-size: 2.3rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.st-line b { font-family: var(--font-display); font-size: 2.5rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
 .streak.hot .st-line b { color: var(--flame); }
 .st-line span { font-weight: 600; }
 .streak small { color: var(--muted); font-size: 0.8rem; }
 .week { display: flex; gap: 8px; }
 .wd { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.72rem; color: var(--muted); }
-.wd i { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line); display: block; }
+.wd i { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; }
 .wd.ok i { background: var(--lime); border-color: var(--lime); box-shadow: 0 0 12px rgba(198, 255, 61, .35); }
+.wd.fz i { background: color-mix(in srgb, var(--cyan) 25%, transparent); border-color: var(--cyan); color: var(--cyan-ink); }
+.wd.fz i svg { width: 14px; height: 14px; }
 .wd.now i { border-style: dashed; border-color: var(--cyan-ink); }
 .wd.now.ok i { border-style: solid; border-color: var(--lime); }
 .wd.now span { color: var(--fg); font-weight: 600; }
-.saved { background: var(--surface-2); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 4px; }
-.sv-main { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-.sv-num { font-family: var(--font-display); font-size: 2.1rem; font-weight: 700; color: var(--cyan-ink); font-variant-numeric: tabular-nums; line-height: 1.1; }
-.sv-main span:last-child { font-weight: 600; }
-.saved p { margin: 0; }
-#sv-eq b { color: var(--lime-ink); font-variant-numeric: tabular-nums; }
-.bd-wrap { display: flex; flex-direction: column; gap: 10px; }
-.bd-wrap .subh { display: flex; align-items: center; gap: 8px; }
+.shields { display: flex; align-items: center; gap: 12px; background: var(--surface-2); border-radius: 16px; padding: 12px 14px; }
+.shields .sh { display: flex; gap: 6px; }
+.shields .sh svg { width: 28px; height: 28px; color: var(--line); }
+.shields .sh svg.on { color: var(--cyan-ink); filter: drop-shadow(0 0 6px rgba(0, 217, 255, .45)); }
+.shields p { margin: 0; font-size: 0.84rem; color: var(--muted); }
+.shields p b { color: var(--fg); }
 .badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); gap: 10px; }
 .badge { background: var(--surface-2); border-radius: 16px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; }
-.badge .bi { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: var(--line); color: var(--muted); opacity: .6; }
+.badge .bi { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: var(--line); color: var(--muted); opacity: .6; }
 .badge.on .bi { background: var(--lime); color: var(--on-lime); opacity: 1; box-shadow: 0 0 16px rgba(198, 255, 61, .4); }
 .badge b { font-family: var(--font-display); font-size: 0.86rem; font-weight: 600; color: var(--muted); }
 .badge.on b { color: var(--fg); }
@@ -298,13 +368,17 @@ tbody tr:last-child td:first-child { color: var(--lime-ink); font-weight: 600; }
   .badge.pop { animation: pop .7s cubic-bezier(.3, 1.6, .5, 1); }
   @keyframes pop { 0% { transform: scale(.5); } 100% { transform: scale(1); } }
 }
-.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 51; background: var(--lime); color: var(--on-lime); font-family: var(--font-display); font-weight: 600; padding: 12px 22px; border-radius: 999px; box-shadow: 0 10px 30px rgba(0, 0, 0, .35); max-width: calc(100% - 32px); text-align: center; }
+
+/* toast + confetti */
+.toast { position: fixed; left: 50%; bottom: calc(88px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 51; background: var(--lime); color: var(--on-lime); font-family: var(--font-display); font-weight: 600; padding: 12px 22px; border-radius: 999px; box-shadow: 0 10px 30px rgba(0, 0, 0, .35); max-width: calc(100% - 32px); text-align: center; }
+.toast.calm { background: var(--cyan); }
+@media (min-width: 881px) { .toast { bottom: calc(24px + env(safe-area-inset-bottom, 0px)); } }
 @media (prefers-reduced-motion: no-preference) {
   .toast.show { animation: tin .35s ease-out; }
   @keyframes tin { from { transform: translate(-50%, 20px); opacity: 0; } }
 }
 .confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
-footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
+footer { color: var(--muted); font-size: 0.78rem; max-width: 72ch; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 </style>
 </head>
@@ -316,7 +390,7 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
       <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13.5 2 4 13.5h6.5L9.5 22 20 9.5h-6.5z"/></svg></div>
       <div>
         <h1>ميزان السعرات</h1>
-        <p>احسب سعراتك، وشوف متى توصل لهدفك، وصوّر وجبتك لتعرف سعراتها.</p>
+        <p id="today-date"></p>
       </div>
     </div>
     <button type="button" class="theme-btn" id="theme-btn" aria-label="تبديل الوضع الفاتح والداكن">
@@ -325,188 +399,259 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
     </button>
   </header>
 
-  <div class="grid">
-    <form id="f" novalidate>
-      <div class="form-title"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>بياناتك</div>
-      <div class="field">
-        <span class="lbl">الجنس</span>
-        <div class="seg" role="radiogroup">
-          <label><input type="radio" name="sex" id="sex-m" value="m" checked>ذكر</label>
-          <label><input type="radio" name="sex" id="sex-f" value="f">أنثى</label>
-        </div>
-      </div>
-      <div class="row2">
-        <div class="field"><label for="age">العمر <span class="unit">سنة</span></label><input type="number" id="age" min="15" max="90" value="30"></div>
-        <div class="field"><label for="height">الطول <span class="unit">سم</span></label><input type="number" id="height" min="130" max="230" value="175"></div>
-      </div>
-      <div class="row2">
-        <div class="field"><label for="weight">وزن البداية <span class="unit">كغ</span></label><input type="number" id="weight" min="35" max="300" step="0.1" value="92"></div>
-        <div class="field"><label for="goal">الوزن المستهدف <span class="unit">كغ</span></label><input type="number" id="goal" min="35" max="300" step="0.1" value="78"></div>
-      </div>
-      <div class="field">
-        <label for="activity">مستوى النشاط</label>
-        <select id="activity">
-          <option value="1.2">خامل: عمل مكتبي بلا رياضة</option>
-          <option value="1.375" selected>خفيف: رياضة 1–3 أيام أسبوعياً</option>
-          <option value="1.55">متوسط: رياضة 3–5 أيام أسبوعياً</option>
-          <option value="1.725">عالٍ: رياضة 6–7 أيام أسبوعياً</option>
-          <option value="1.9">عالٍ جداً: عمل بدني أو تمرين مرتين يومياً</option>
-        </select>
-      </div>
-      <div class="field">
-        <span class="lbl">سرعة التغيير <span class="unit">كغ في الأسبوع</span></span>
-        <div class="seg four" role="radiogroup">
-          <label><input type="radio" name="pace" id="pace-1" value="0.25">0.25</label>
-          <label><input type="radio" name="pace" id="pace-2" value="0.5" checked>0.5</label>
-          <label><input type="radio" name="pace" id="pace-3" value="0.75">0.75</label>
-          <label><input type="radio" name="pace" id="pace-4" value="1">1</label>
-        </div>
-        <p class="hint">0.5 كغ أسبوعياً هي السرعة الأسهل في الالتزام لأغلب الناس.</p>
-      </div>
-      <p class="hint">القيم المعبأة مثال، غيّرها ببياناتك وستتحدث النتائج فوراً.</p>
-    </form>
+  <nav class="tabs" aria-label="أقسام الموقع">
+    <a href="#today" data-v="today"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/></svg><span>اليوم</span></a>
+    <a href="#plan" data-v="plan"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6M8 4H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"/><path d="M8 12h8M8 16h5"/></svg><span>خطتك</span></a>
+    <a href="#progress" data-v="progress"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-5 4 4 8-8"/><path d="M15 8h5v5"/></svg><span>تقدمك</span></a>
+    <a href="#awards" data-v="awards"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 3M16 6h3a3 3 0 0 1-3 3M12 13v4M8 20h8"/></svg><span>إنجازاتك</span></a>
+  </nav>
 
-    <div class="results">
-      <section class="hero" aria-live="polite">
-        <div class="hero-main">
-          <span class="k">هدفك اليومي الحين</span>
-          <div class="hero-num"><span class="v" id="o-target">–</span><small>سعرة / يوم</small></div>
-          <p class="goalline" id="o-goal"></p>
+  <!-- TODAY -->
+  <div class="view" id="v-today">
+    <section class="today-hero" aria-live="polite">
+      <div class="rings" id="rings">
+        <svg viewBox="0 0 200 200" aria-hidden="true">
+          <circle class="tr-c" cx="100" cy="100" r="88"/><circle class="fg" id="ring-cal" cx="100" cy="100" r="88" pathLength="100" stroke-dasharray="0 100"/>
+          <circle class="tr-p" cx="100" cy="100" r="66"/><circle class="fg" id="ring-pro" cx="100" cy="100" r="66" pathLength="100" stroke-dasharray="0 100"/>
+          <circle class="tr-w" cx="100" cy="100" r="44"/><circle class="fg" id="ring-wat" cx="100" cy="100" r="44" pathLength="100" stroke-dasharray="0 100"/>
+        </svg>
+        <div class="mid"><b id="sc-num">0</b><span>نقاط يومك</span><em id="sc-lbl"></em></div>
+      </div>
+      <div class="hero-side">
+        <div class="big-row">
+          <div class="big"><b id="t-big">0</b><small id="t-big-lbl">سعرة باقية</small></div>
+          <div class="seg vt" role="group" aria-label="طريقة العرض">
+            <button type="button" id="vt-left" aria-pressed="true">الباقي</button>
+            <button type="button" id="vt-eaten" aria-pressed="false">أكلت</button>
+          </div>
         </div>
-        <div class="stats">
-          <div class="stat"><span class="k">الحرق الأساسي</span><span class="v" id="o-bmr">–</span><span class="s">سعرة/يوم وأنت في راحة</span></div>
-          <div class="stat"><span class="k">احتياجك اليومي</span><span class="v" id="o-tdee">–</span><span class="s">لتثبيت وزنك الحالي</span></div>
-          <div class="stat"><span class="k">مؤشر كتلة الجسم</span><span class="v" id="o-bmi">–</span><span class="s" id="o-bmic">–</span></div>
+        <div class="eq">
+          <div><b id="eq-goal">0</b><span>الهدف</span></div><i>−</i>
+          <div><b id="eq-food">0</b><span>الأكل</span></div><i>+</i>
+          <div><b id="eq-ex">0</b><span>التمرين</span></div><i>=</i>
+          <div class="res"><b id="eq-left">0</b><span>الباقي</span></div>
         </div>
-        <div class="notice" id="o-notice" hidden></div>
-      </section>
+        <div class="legend3">
+          <div><span><i class="fd g"></i>السعرات</span><b id="lg-cal">0</b></div>
+          <div><span><i class="fd x"></i>البروتين</span><b id="lg-pro">0</b></div>
+          <div><span><i class="fd" style="background:var(--pink)"></i>الماء</span><b id="lg-wat">0</b></div>
+        </div>
+      </div>
+    </section>
 
-      <section class="panel" id="moti">
-        <h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 3M16 6h3a3 3 0 0 1-3 3M12 13v4M8 20h8"/></svg>إنجازاتك</h2>
-        <div class="moti-top">
-          <div class="streak" id="streak">
-            <div class="flame"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c.6 3.2 4.5 5 4.5 9.5a4.5 4.5 0 0 1-9 0c0-2.2 1.2-3.6 2.3-4.6.1 1.7.8 2.8 1.9 3.1-.4-2.8-.6-5.2.3-8z"/></svg></div>
-            <div><div class="st-line"><b id="st-num">0</b><span>أيام متتالية</span></div><small id="st-best"></small></div>
-          </div>
-          <div class="week" id="st-week" aria-label="التزامك في آخر 7 أيام"></div>
-        </div>
-        <p class="hint" id="st-hint"></p>
-        <div class="saved" id="saved">
-          <div class="sv-main"><span class="sv-num" id="sv-num">0</span><span id="sv-lbl">سعرة وفّرتها من بداية الخطة</span></div>
-          <p id="sv-eq"></p>
-          <p class="hint">يتحسب من الأيام اللي سجلت فيها أكلك، ما عدا اليوم.</p>
-        </div>
-        <div class="bd-wrap">
-          <h3 class="subh">شاراتك <span class="pill" id="bd-count"></span></h3>
-          <div class="badges" id="badges"></div>
-        </div>
-      </section>
-
-      <section class="panel" id="snap">
-        <div class="snap-head">
-          <h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>صوّر وجبتك</h2>
-          <span class="pill" id="snap-pill">تحليل بالذكاء الاصطناعي</span>
-        </div>
-        <p class="hint">التقط صورة لطبقك من الأعلى، وسيتعرف Claude على الأصناف ويقدّر الكمية والسعرات. التقدير من الصورة تقريبي، واكتب ملاحظة عن الكمية أو طريقة الطبخ لتحسين الدقة.</p>
-        <div class="snap-grid">
-          <div class="drop" id="drop">
-            <img id="snap-img" alt="صورة الوجبة المختارة" hidden>
-            <div class="drop-empty" id="drop-empty">
-              <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
-              <span>اسحب صورة الوجبة هنا أو الصقها</span>
-            </div>
-          </div>
-          <div class="snap-side">
-            <label class="btn primary big" for="snap-cam"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>التقط صورة</label>
-            <label class="btn" for="snap-pick"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg>اختر من الصور</label>
-            <input type="file" id="snap-cam" accept="image/*" capture="environment" hidden>
-            <input type="file" id="snap-pick" accept="image/*" hidden>
-            <div class="field">
-              <label for="snap-note">ملاحظة عن الوجبة <span class="unit">اختياري</span></label>
-              <input type="text" id="snap-note" maxlength="300" placeholder="مثال: كوب رز، الدجاج مشوي بدون جلد">
-            </div>
-            <button type="button" class="btn" id="snap-go" disabled><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2 4 13.5h6.5L9.5 22 20 9.5h-6.5z"/></svg>احسب السعرات</button>
-            <button type="button" class="btn" id="snap-stop" hidden>إيقاف التحليل</button>
-            <p class="snap-msg" id="snap-msg" aria-live="polite"></p>
-          </div>
-        </div>
-        <div class="snap-out" id="snap-out" hidden></div>
-      </section>
-
-      <section class="panel" id="today">
-        <h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>يومك اليوم</h2>
-        <div class="daylog">
-          <div class="ring" id="ring">
-            <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="bgc" cx="60" cy="60" r="52"/><circle class="fgc" id="ring-fg" cx="60" cy="60" r="52" pathLength="100" stroke-dasharray="0 100"/></svg>
-            <div class="mid"><b id="ring-pct">0%</b><span>من هدف اليوم</span></div>
-          </div>
-          <div class="log-body">
-            <h3>سجل اليوم <span class="pill lime" id="log-badge" hidden>أحسنت، وصلت هدفك</span></h3>
-            <p id="log-sum"></p>
-            <ul class="loglist" id="log-list"></ul>
-          </div>
-        </div>
-        <div>
-          <h3 class="subh">أضف بضغطة</h3>
-          <div class="chips" id="quick"></div>
-        </div>
-        <div class="manual">
-          <div class="field"><label for="m-name">أكلة أخرى</label><input type="text" id="m-name" maxlength="60" placeholder="مثال: صحن مكرونة بالدجاج"></div>
-          <div class="field"><label for="m-kcal">السعرات</label><input type="number" id="m-kcal" min="1" max="5000" placeholder="450"></div>
-          <button type="button" class="btn" id="m-add">أضف</button>
-        </div>
-        <p class="snap-msg" id="m-msg" aria-live="polite"></p>
-        <div class="water">
-          <div class="water-head"><h3 class="subh">الماء</h3><span id="water-sum"></span></div>
+    <div class="cols">
+      <div class="col">
+        <section class="panel">
+          <div class="head-row"><h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11h16a8 8 0 0 1-16 0z"/><path d="M9 7c0-1.5 1-2 1-3M14 7c0-1.5 1-2 1-3"/></svg>سجل اليوم</h2><span class="pill" id="log-count"></span></div>
+          <div class="mixbar" id="mix-bar" aria-hidden="true"></div>
+          <div class="mixkey" id="mix-key"></div>
+          <ul class="loglist" id="log-list"></ul>
+        </section>
+        <section class="panel">
+          <div class="head-row"><h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c3.5 4.2 6 7.6 6 10.5a6 6 0 0 1-12 0C6 10.6 8.5 7.2 12 3z"/></svg>الماء</h2><span class="pill" id="water-sum"></span></div>
           <div class="cups" id="cups"></div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-5 4 4 8-8"/><path d="M15 8h5v5"/></svg>منحنى الوزن المتوقع</h2>
-        <div class="chart-box"><svg id="chart" viewBox="0 0 640 270" role="img" aria-label="منحنى الوزن المتوقع أسبوعاً بأسبوع"></svg></div>
-        <div class="legend">
-          <span><i style="background:var(--cyan)"></i>الوزن المتوقع</span>
-          <span><i style="background:var(--pink)"></i>وزنك الفعلي</span>
-          <span><i style="background:var(--lime-ink);height:2px"></i>الهدف</span>
-        </div>
-        <div class="wlog">
-          <div class="wlog-form">
-            <div class="field"><label for="w-today">وزنك اليوم <span class="unit">كغ</span></label><input type="number" id="w-today" min="35" max="300" step="0.1" placeholder="91.4"></div>
-            <button type="button" class="btn primary" id="w-add">سجّل وزني</button>
+        </section>
+      </div>
+      <div class="col">
+        <section class="panel">
+          <h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>أضف أكلك</h2>
+          <div class="chips" id="quick"></div>
+          <div class="manual">
+            <div class="field"><label for="m-name">أكلة أخرى</label><input type="text" id="m-name" maxlength="60" placeholder="مثال: صحن مكرونة بالدجاج"></div>
+            <div class="field"><label for="m-kcal">السعرات</label><input type="number" id="m-kcal" min="1" max="5000" placeholder="450"></div>
+            <button type="button" class="btn" id="m-add">أضف</button>
           </div>
-          <p class="hint" id="w-status"></p>
-          <ul class="loglist" id="w-list"></ul>
-          <button type="button" class="linkbtn" id="w-reset">ابدأ خطة جديدة من اليوم</button>
-        </div>
-        <div class="tbl">
-          <table>
-            <thead><tr><th>المرحلة</th><th>الأسبوع</th><th>الوزن المتوقع</th><th>السعرات اليومية</th></tr></thead>
-            <tbody id="o-table"></tbody>
-          </table>
-        </div>
-        <p class="hint">كلما تغيّر وزنك يتغيّر احتياجك، لذلك تتعدل السعرات قليلاً في كل مرحلة.</p>
-      </section>
+          <p class="msg" id="m-msg" aria-live="polite"></p>
+          <p class="hint">الألوان حسب كثافة السعرات: <i class="fd g"></i> خفيف <i class="fd y"></i> متوسط <i class="fd o"></i> كثيف. التوازن المقترح تقريباً 30% أخضر و45% أصفر و25% برتقالي، ولا يوجد أكل ممنوع.</p>
+        </section>
 
-      <section class="panel">
-        <h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6.4 6.4"/></svg>توزيع العناصر الغذائية</h2>
-        <div class="macros" id="o-macros"></div>
-      </section>
+        <section class="panel" id="snap">
+          <div class="head-row"><h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>صوّر وجبتك</h2><span class="pill" id="snap-pill">تحليل بالذكاء الاصطناعي</span></div>
+          <div class="snap-grid">
+            <div class="drop" id="drop">
+              <img id="snap-img" alt="صورة الوجبة المختارة" hidden>
+              <div class="drop-empty" id="drop-empty">
+                <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+                <span>اسحب صورة الوجبة هنا أو الصقها</span>
+              </div>
+            </div>
+            <div class="snap-side">
+              <label class="btn primary big" for="snap-cam"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>التقط صورة</label>
+              <label class="btn" for="snap-pick"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg>اختر من الصور</label>
+              <input type="file" id="snap-cam" accept="image/*" capture="environment" hidden>
+              <input type="file" id="snap-pick" accept="image/*" hidden>
+              <div class="field"><label for="snap-note">ملاحظة <span class="unit">اختياري</span></label><input type="text" id="snap-note" maxlength="300" placeholder="مثال: كوب رز، دجاج مشوي"></div>
+              <button type="button" class="btn" id="snap-go" disabled><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2 4 13.5h6.5L9.5 22 20 9.5h-6.5z"/></svg>احسب السعرات</button>
+              <button type="button" class="btn" id="snap-stop" hidden>إيقاف التحليل</button>
+              <p class="msg" id="snap-msg" aria-live="polite"></p>
+            </div>
+          </div>
+          <div class="snap-out" id="snap-out" hidden></div>
+        </section>
 
-      <section class="panel">
-        <h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11h16a8 8 0 0 1-16 0z"/><path d="M9 7c0-1.5 1-2 1-3M14 7c0-1.5 1-2 1-3"/></svg>يومك على الطبق</h2>
-        <div class="meals" id="o-meals"></div>
-      </section>
-
-      <section class="panel">
-        <h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg>عادات أسبوعية تثبّت النتيجة</h2>
-        <ul class="habits" id="o-habits"></ul>
-      </section>
+        <section class="panel">
+          <h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4M6 7v10M18 7v10M21 10v4M6 12h12"/></svg>تمرين إضافي</h2>
+          <div class="chips" id="ex-chips"></div>
+          <p class="msg" id="ex-msg" aria-live="polite"></p>
+          <p class="hint">سجّل التمارين اللي زيادة على نشاطك المعتاد بس، لأن مستوى نشاطك محسوب في هدفك. السعرات تقديرية على حسب وزنك.</p>
+        </section>
+      </div>
     </div>
   </div>
 
+  <!-- PLAN -->
+  <div class="view" id="v-plan" hidden>
+    <div class="plan-grid">
+      <form id="f" novalidate>
+        <h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>بياناتك</h2>
+        <div class="field">
+          <span class="lbl">الجنس</span>
+          <div class="seg" role="radiogroup">
+            <label><input type="radio" name="sex" id="sex-m" value="m" checked>ذكر</label>
+            <label><input type="radio" name="sex" id="sex-f" value="f">أنثى</label>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="age">العمر <span class="unit">سنة</span></label><input type="number" id="age" min="15" max="90" value="30"></div>
+          <div class="field"><label for="height">الطول <span class="unit">سم</span></label><input type="number" id="height" min="130" max="230" value="175"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="weight">وزن البداية <span class="unit">كغ</span></label><input type="number" id="weight" min="35" max="300" step="0.1" value="92"></div>
+          <div class="field"><label for="goal">الوزن المستهدف <span class="unit">كغ</span></label><input type="number" id="goal" min="35" max="300" step="0.1" value="78"></div>
+        </div>
+        <div class="field">
+          <label for="activity">مستوى النشاط</label>
+          <select id="activity">
+            <option value="1.2">خامل: عمل مكتبي بلا رياضة</option>
+            <option value="1.375" selected>خفيف: رياضة 1–3 أيام أسبوعياً</option>
+            <option value="1.55">متوسط: رياضة 3–5 أيام أسبوعياً</option>
+            <option value="1.725">عالٍ: رياضة 6–7 أيام أسبوعياً</option>
+            <option value="1.9">عالٍ جداً: عمل بدني أو تمرين مرتين يومياً</option>
+          </select>
+        </div>
+        <div class="field">
+          <span class="lbl">سرعة التغيير <span class="unit">كغ في الأسبوع</span></span>
+          <div class="seg four" role="radiogroup">
+            <label><input type="radio" name="pace" id="pace-1" value="0.25">0.25</label>
+            <label><input type="radio" name="pace" id="pace-2" value="0.5" checked>0.5</label>
+            <label><input type="radio" name="pace" id="pace-3" value="0.75">0.75</label>
+            <label><input type="radio" name="pace" id="pace-4" value="1">1</label>
+          </div>
+          <p class="hint">0.5 كغ أسبوعياً هي السرعة الأسهل في الالتزام لأغلب الناس.</p>
+        </div>
+        <p class="hint">القيم المعبأة مثال، غيّرها ببياناتك وتتحدث كل الأقسام فوراً.</p>
+      </form>
+
+      <div class="col">
+        <section class="hero">
+          <div class="hero-main">
+            <span class="k">هدفك اليومي الحين</span>
+            <div class="hero-num"><span class="v" id="o-target">–</span><small>سعرة / يوم</small></div>
+            <p class="goalline" id="o-goal"></p>
+          </div>
+          <div class="stats">
+            <div class="stat"><span class="k">الحرق الأساسي</span><span class="v" id="o-bmr">–</span><span class="s">سعرة/يوم وأنت في راحة</span></div>
+            <div class="stat"><span class="k">احتياجك اليومي</span><span class="v" id="o-tdee">–</span><span class="s">لتثبيت وزنك الحالي</span></div>
+            <div class="stat"><span class="k">مؤشر كتلة الجسم</span><span class="v" id="o-bmi">–</span><span class="s" id="o-bmic">–</span></div>
+          </div>
+          <div class="notice" id="o-notice" hidden></div>
+        </section>
+        <section class="panel">
+          <h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6.4 6.4"/></svg>توزيع العناصر الغذائية</h2>
+          <div class="macros" id="o-macros"></div>
+        </section>
+        <section class="panel">
+          <h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11h16a8 8 0 0 1-16 0z"/></svg>يومك على الطبق</h2>
+          <div class="meals" id="o-meals"></div>
+        </section>
+        <section class="panel">
+          <h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg>عادات تثبّت النتيجة</h2>
+          <ul class="habits" id="o-habits"></ul>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="view" id="v-progress" hidden>
+    <section class="panel">
+      <h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-5 4 4 8-8"/><path d="M15 8h5v5"/></svg>وزنك مقابل الخطة</h2>
+      <div class="chart-box"><svg id="chart" viewBox="0 0 640 270" role="img" aria-label="منحنى الوزن المتوقع واتجاه وزنك الفعلي"></svg></div>
+      <div class="legend">
+        <span><i style="background:var(--cyan)"></i>الوزن المتوقع</span>
+        <span><i style="background:var(--pink)"></i>اتجاه وزنك</span>
+        <span><i style="background:var(--pink);height:2px;opacity:.6"></i>قراءة الميزان</span>
+        <span><i style="background:var(--lime-ink);height:2px"></i>الهدف</span>
+      </div>
+      <div class="wbox">
+        <div class="wlog-form">
+          <div class="field"><label for="w-today">وزنك اليوم <span class="unit">كغ</span></label><input type="number" id="w-today" min="35" max="300" step="0.1" placeholder="91.4"></div>
+          <button type="button" class="btn primary" id="w-add">سجّل وزني</button>
+        </div>
+        <p class="hint" id="w-status"></p>
+        <ul class="loglist" id="w-list"></ul>
+        <button type="button" class="linkbtn" id="w-reset">ابدأ خطة جديدة من اليوم</button>
+      </div>
+      <p class="hint">الميزان يتذبذب يومياً بسبب الماء والملح. خط «اتجاه وزنك» يهدّي هذا التذبذب ويوضح وين رايح وزنك فعلاً، وعليه نعدّل سعراتك.</p>
+    </section>
+
+    <div class="cols">
+      <section class="panel">
+        <div class="head-row"><h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>آخر 7 أيام</h2><span class="pill" id="wk-avg"></span></div>
+        <div class="chart-box"><svg id="wk-bars" viewBox="0 0 640 210" role="img" aria-label="سعرات آخر 7 أيام مقابل الهدف"></svg></div>
+        <div class="legend"><span><i style="background:var(--lime)"></i>ضمن هدفك</span><span><i style="background:color-mix(in srgb, var(--muted) 45%, transparent)"></i>يوم مسجل</span><span><i style="background:var(--lime-ink);height:2px"></i>الهدف</span></div>
+      </section>
+      <section class="panel">
+        <h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2 4 13.5h6.5L9.5 22 20 9.5h-6.5z"/></svg>كم وفّرت</h2>
+        <div class="saved-row"><span class="saved-num" id="sv-num">0</span><span id="sv-lbl">سعرة وفّرتها من بداية الخطة</span></div>
+        <p id="sv-eq"></p>
+        <p class="hint">يتحسب من الأيام اللي سجلت فيها أكلك، ما عدا اليوم.</p>
+      </section>
+    </div>
+
+    <section class="panel">
+      <div class="head-row"><h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>تقويم الالتزام</h2><span class="pill" id="heat-sum"></span></div>
+      <div class="heat-box"><div class="heat" id="heat" aria-label="آخر 12 أسبوع"></div></div>
+      <div class="legend"><span><i style="background:var(--surface-2);height:10px;width:10px"></i>بدون تسجيل</span><span><i style="background:color-mix(in srgb, var(--lime) 30%, var(--surface-2));height:10px;width:10px"></i>سجلت</span><span><i style="background:var(--lime);height:10px;width:10px"></i>ضمن هدفك</span><span><i style="background:var(--cyan);height:10px;width:10px"></i>محمي بالدرع</span></div>
+      <p class="hint">المهم الاستمرار مو الكمال. يوم خارج الهدف ما يلغي تقدمك.</p>
+    </section>
+
+    <section class="panel">
+      <h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>مراحل الخطة</h2>
+      <div class="tbl">
+        <table>
+          <thead><tr><th>المرحلة</th><th>الأسبوع</th><th>الوزن المتوقع</th><th>السعرات اليومية</th></tr></thead>
+          <tbody id="o-table"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- AWARDS -->
+  <div class="view" id="v-awards" hidden>
+    <section class="panel">
+      <h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c.6 3.2 4.5 5 4.5 9.5a4.5 4.5 0 0 1-9 0c0-2.2 1.2-3.6 2.3-4.6.1 1.7.8 2.8 1.9 3.1-.4-2.8-.6-5.2.3-8z"/></svg>سلسلتك</h2>
+      <div class="moti-top">
+        <div class="streak" id="streak">
+          <div class="flame"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c.6 3.2 4.5 5 4.5 9.5a4.5 4.5 0 0 1-9 0c0-2.2 1.2-3.6 2.3-4.6.1 1.7.8 2.8 1.9 3.1-.4-2.8-.6-5.2.3-8z"/></svg></div>
+          <div><div class="st-line"><b id="st-num">0</b><span>أيام متتالية</span></div><small id="st-best"></small></div>
+        </div>
+        <div class="week" id="st-week" aria-label="التزامك في آخر 7 أيام"></div>
+      </div>
+      <p class="hint" id="st-hint"></p>
+      <div class="shields">
+        <div class="sh" id="shields"></div>
+        <p id="sh-txt"></p>
+      </div>
+    </section>
+    <section class="panel">
+      <div class="head-row"><h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>شاراتك</h2><span class="pill" id="bd-count"></span></div>
+      <div class="badges" id="badges"></div>
+    </section>
+  </div>
+
   <div class="toast" id="toast" role="status" hidden></div>
-  <footer>الأرقام تقديرية مبنية على معادلة ميفلين–سانت جيور، وعلى أن 1 كغ من الدهون يعادل نحو 7700 سعرة. النتائج الفعلية تختلف من شخص لآخر. إذا كانت لديك حالة صحية أو حمل أو رضاعة، راجع طبيباً أو أخصائي تغذية قبل البدء.</footer>
+  <footer>الأرقام تقديرية مبنية على معادلة ميفلين–سانت جيور، وعلى أن 1 كغ من الدهون يعادل نحو 7700 سعرة. النتائج الفعلية تختلف من شخص لآخر. إذا كانت لديك حالة صحية أو حمل أو رضاعة، راجع طبيباً أو أخصائي تغذية قبل البدء. بياناتك محفوظة في متصفحك فقط.</footer>
 </div>
 
 <script>
@@ -514,15 +659,45 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
   const $ = (id) => document.getElementById(id);
   const fmt = (n, d = 0) => Number(n).toLocaleString('en-US', { maximumFractionDigits: d, minimumFractionDigits: d });
   const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const KEY = 'calorie-plan-inputs';
-  const ids = ['age', 'height', 'weight', 'goal', 'activity'];
-
-  // ---------- theme toggle ----------
   const root = document.documentElement;
-  function applyTheme(t) {
-    if (t === 'light') root.setAttribute('data-theme', 'light'); else root.setAttribute('data-theme', 'dark');
-    $('theme-lbl').textContent = t === 'light' ? 'الوضع الداكن' : 'الوضع الفاتح';
-  }
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const num = (v) => Math.max(0, Math.round(Number(v) || 0));
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+  const DAY = 864e5, WEEK = 7 * DAY;
+  const ds = (d) => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+  const todayStr = () => ds(new Date());
+  const noonOf = (t) => { const d = new Date(t); d.setHours(12, 0, 0, 0); return d; };
+  const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+  const dayStart = (t) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+  const DAYL = ['ح', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'];
+  const r10 = (n) => Math.round(n / 10) * 10;
+
+  $('today-date').textContent = new Date().toLocaleDateString('ar-u-nu-latn', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  // ---------- icons ----------
+  const ICONS = {
+    drop: '<path d="M12 3c3.5 4.2 6 7.6 6 10.5a6 6 0 0 1-12 0C6 10.6 8.5 7.2 12 3z"/>',
+    gym: '<path d="M3 10v4M6 7v10M18 7v10M21 10v4M6 12h12"/>',
+    moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+    scale: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 10a4 4 0 0 1 6 0l-3 2.5"/>',
+    cal: '<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+    bowl: '<path d="M4 11h16a8 8 0 0 1-16 0z"/><path d="M9 7c0-1.5 1-2 1-3M14 7c0-1.5 1-2 1-3"/>',
+    flame: '<path d="M12 3c.6 3.2 4.5 5 4.5 9.5a4.5 4.5 0 0 1-9 0c0-2.2 1.2-3.6 2.3-4.6.1 1.7.8 2.8 1.9 3.1-.4-2.8-.6-5.2.3-8z"/>',
+    trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 3M16 6h3a3 3 0 0 1-3 3M12 13v4M8 20h8"/>',
+    star: '<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>',
+    target: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/>',
+    bolt: '<path d="M13.5 2 4 13.5h6.5L9.5 22 20 9.5h-6.5z"/>',
+    shield: '<path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6z"/>',
+    run: '<circle cx="14" cy="4.5" r="1.8"/><path d="M8 21l3-6 3 2v4M6 12l3-4 4 1 3 3h3"/>',
+    leaf: '<path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15"/><path d="M5 19 13 11"/>'
+  };
+  const ico = (k, cls) => '<svg class="ico' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true">' + ICONS[k] + '</svg>';
+
+  // ---------- theme ----------
+  function applyTheme(t) { root.setAttribute('data-theme', t); $('theme-lbl').textContent = t === 'light' ? 'الوضع الداكن' : 'الوضع الفاتح'; }
   let theme = 'dark';
   try { theme = localStorage.getItem('calorie-theme') || (root.getAttribute('data-theme') === 'light' ? 'light' : 'dark'); } catch (e) {}
   applyTheme(theme);
@@ -532,16 +707,7 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
     try { localStorage.setItem('calorie-theme', theme); } catch (e) {}
   });
 
-  // ---------- restore inputs ----------
-  try {
-    const saved = JSON.parse(localStorage.getItem(KEY) || 'null');
-    if (saved) {
-      ids.forEach((k) => { if (saved[k] != null) $(k).value = saved[k]; });
-      if (saved.sex) { const r = document.querySelector('input[name=sex][value="' + saved.sex + '"]'); if (r) r.checked = true; }
-      if (saved.pace) { const r = document.querySelector('input[name=pace][value="' + saved.pace + '"]'); if (r) r.checked = true; }
-    }
-  } catch (e) {}
-
+  // ---------- number animation ----------
   function animateNum(el, to, d) {
     d = d || 0;
     const had = el.dataset.v != null;
@@ -558,6 +724,30 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
     el._raf = requestAnimationFrame(step);
   }
 
+  // ---------- state ----------
+  const ids = ['age', 'height', 'weight', 'goal', 'activity'];
+  const saved = store.get('calorie-plan-inputs', null);
+  if (saved) {
+    ids.forEach((k) => { if (saved[k] != null) $(k).value = saved[k]; });
+    if (saved.sex) { const r = document.querySelector('input[name=sex][value="' + saved.sex + '"]'); if (r) r.checked = true; }
+    if (saved.pace) { const r = document.querySelector('input[name=pace][value="' + saved.pace + '"]'); if (r) r.checked = true; }
+  }
+  const arr = (v) => (Array.isArray(v) ? v : []);
+  let mealLog = arr(store.get('meal-log-' + todayStr(), []));
+  let exLog = arr(store.get('ex-log-' + todayStr(), []));
+  let waterCount = Math.max(0, Number(store.get('water-' + todayStr(), 0)) || 0);
+  let weightLog = arr(store.get('weight-log', [])).filter((e) => e && isFinite(e.d) && isFinite(e.w)).sort((a, b) => a.d - b.d);
+  let planStart = Number(store.get('plan-start', 0)) || 0;
+  if (!planStart) { planStart = dayStart(Date.now()); store.set('plan-start', planStart); }
+  let calView = store.get('cal-view', 'left') === 'eaten' ? 'eaten' : 'left';
+  let currentS = null, currentTarget = 0, currentDir = 0, currentTdee = 0, proteinTarget = 0, waterGoal = 12, lastSim = null;
+
+  const saveMeals = () => store.set('meal-log-' + todayStr(), mealLog);
+  const saveEx = () => store.set('ex-log-' + todayStr(), exLog);
+  const saveWater = () => store.set('water-' + todayStr(), waterCount);
+  const saveW = () => { store.set('weight-log', weightLog); store.set('plan-start', planStart); };
+
+  // ---------- plan math ----------
   function read() {
     return {
       sex: document.querySelector('input[name=sex]:checked').value,
@@ -568,7 +758,6 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
     };
   }
   const bmrOf = (s, w) => 10 * w + 6.25 * s.h - 5 * s.age + (s.sex === 'm' ? 5 : -161);
-
   function simulate(s) {
     const dir = s.goal < s.w - 0.2 ? -1 : s.goal > s.w + 0.2 ? 1 : 0;
     const floor = s.sex === 'm' ? 1500 : 1200;
@@ -592,77 +781,58 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
     pts[0].kcal = pts[1] ? pts[1].kcal : pts[0].kcal;
     return { dir, pts, clamped, pace, floor };
   }
-
-  const r10 = (n) => Math.round(n / 10) * 10;
-  function bmiCat(b) {
-    if (b < 18.5) return 'نقص في الوزن';
-    if (b < 25) return 'وزن طبيعي';
-    if (b < 30) return 'زيادة في الوزن';
-    return 'سمنة';
+  const wkOf = (t) => Math.max(0, (t - planStart) / WEEK);
+  function weightAt(sim, t) {
+    const p = sim.pts;
+    if (t <= 0) return p[0].w;
+    for (let i = 1; i < p.length; i++) {
+      if (p[i].wk >= t) { const a = p[i - 1], b = p[i]; return a.w + (b.w - a.w) * (t - a.wk) / ((b.wk - a.wk) || 1); }
+    }
+    return p[p.length - 1].w;
   }
+  function kcalAt(sim, s, t) {
+    const p = sim.pts;
+    if (sim.dir === 0) return p[0].kcal;
+    for (let i = 1; i < p.length; i++) if (p[i].wk >= t) return p[i].kcal;
+    return bmrOf(s, p[p.length - 1].w) * s.act;
+  }
+  // smoothed weight trend: daily-interpolated exponential moving average
+  function trendSeries() {
+    const out = [];
+    let t = null;
+    weightLog.forEach((a, i) => {
+      if (i === 0) { t = a.w; out.push({ d: a.d, w: a.w, t }); return; }
+      const p = weightLog[i - 1], days = Math.max(1, Math.round((a.d - p.d) / DAY));
+      for (let k = 1; k <= days; k++) { const w = p.w + (a.w - p.w) * k / days; t = t + 0.2 * (w - t); }
+      out.push({ d: a.d, w: a.w, t });
+    });
+    return out;
+  }
+  function adaptive(sim) {
+    const tr = trendSeries();
+    if (sim.dir === 0 || tr.length < 2) return { kcal: 0, msg: '' };
+    const f = tr[0], l = tr[tr.length - 1];
+    const span = (l.d - f.d) / WEEK;
+    if (span < 2) return { kcal: 0, msg: 'سجّل وزنك أسبوعين على الأقل حتى نقارن اتجاه وزنك بالخطة.' };
+    const actual = (l.t - f.t) / span;
+    const exp = (weightAt(sim, wkOf(l.d)) - weightAt(sim, wkOf(f.d))) / span;
+    const gap = actual - exp;
+    if (Math.abs(gap) < 0.1) return { kcal: 0, msg: 'اتجاه وزنك مطابق للخطة، استمر.' };
+    const kcal = Math.max(-250, Math.min(250, Math.round(-gap * 1100 / 10) * 10));
+    let msg;
+    if (sim.dir < 0) msg = kcal < 0 ? 'وزنك ينزل أبطأ من الخطة، فخفّضنا هدفك ' + fmt(-kcal) + ' سعرة.' : 'وزنك ينزل أسرع من الخطة، فزدنا هدفك ' + fmt(kcal) + ' سعرة حتى تحافظ على عضلاتك.';
+    else msg = kcal < 0 ? 'وزنك يزيد أسرع من الخطة، فخفّضنا هدفك ' + fmt(-kcal) + ' سعرة.' : 'وزنك يزيد أبطأ من الخطة، فزدنا هدفك ' + fmt(kcal) + ' سعرة.';
+    return { kcal, msg };
+  }
+  function bmiCat(b) { return b < 18.5 ? 'نقص في الوزن' : b < 25 ? 'وزن طبيعي' : b < 30 ? 'زيادة في الوزن' : 'سمنة'; }
   function niceStep(range, target) {
     const raw = range / target, mag = Math.pow(10, Math.floor(Math.log10(raw)));
     const n = raw / mag;
     return (n < 1.5 ? 1 : n < 3 ? 2 : n < 7 ? 5 : 10) * mag;
   }
+  const currentWeight = () => (weightLog.length ? weightLog[weightLog.length - 1].w : (currentS ? currentS.w : 80));
 
-  let chartDrawn = false;
-  function drawChart(sim, s) {
-    const svg = $('chart');
-    const W = 640, H = 270, L = 48, R = 20, T = 20, B = 36;
-    const pts = sim.pts;
-    const actual = weightLog.map((e) => ({ wk: wkOf(e.d), w: e.w }));
-    const maxWk = Math.max(pts[pts.length - 1].wk, 4, ...actual.map((a) => a.wk));
-    const ws = pts.map((p) => p.w).concat(actual.map((a) => a.w));
-    let lo = Math.min(...ws, s.goal), hi = Math.max(...ws, s.goal);
-    const pad = Math.max((hi - lo) * 0.15, 1.5);
-    const yStep = niceStep(hi - lo + pad * 2, 5);
-    lo = Math.floor((lo - pad) / yStep) * yStep; hi = Math.ceil((hi + pad) / yStep) * yStep;
-    const x = (wk) => W - R - (wk / maxWk) * (W - L - R);
-    const y = (v) => T + (hi - v) / (hi - lo) * (H - T - B);
-    let out = '<defs>' +
-      '<linearGradient id="lnGrad" x1="1" y1="0" x2="0" y2="0"><stop offset="0" style="stop-color:var(--cyan)"/><stop offset="1" style="stop-color:var(--lime-ink)"/></linearGradient>' +
-      '<linearGradient id="arGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--cyan);stop-opacity:.28"/><stop offset="1" style="stop-color:var(--cyan);stop-opacity:0"/></linearGradient>' +
-      '</defs>';
-    for (let v = lo; v <= hi + 1e-6; v += yStep) {
-      out += '<line class="ax" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v) + '" y2="' + y(v) + '"/>';
-      out += '<text class="axt" x="' + (L - 8) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + fmt(v, yStep < 1 ? 1 : 0) + '</text>';
-    }
-    const xStep = niceStep(maxWk, 6);
-    for (let wk = 0; wk <= maxWk + 1e-6; wk += xStep) {
-      out += '<text class="axt" x="' + x(wk) + '" y="' + (H - 12) + '" text-anchor="middle">' + fmt(wk) + '</text>';
-    }
-    out += '<text class="axt" x="' + L + '" y="' + (H - 12) + '" text-anchor="start" dx="-44">أسبوع</text>';
-    const gy = y(s.goal);
-    out += '<line class="gl" x1="' + L + '" x2="' + (W - R) + '" y1="' + gy + '" y2="' + gy + '"/>';
-    out += '<text class="glt" x="' + (L + 6) + '" y="' + (gy + (sim.dir < 0 ? 16 : -7)) + '" text-anchor="start">الهدف ' + fmt(s.goal, 1) + ' كغ</text>';
-    const line = pts.map((p, i) => (i ? 'L' : 'M') + x(p.wk).toFixed(1) + ' ' + y(p.w).toFixed(1)).join(' ');
-    const last = pts[pts.length - 1];
-    out += '<path d="' + line + ' L' + x(last.wk).toFixed(1) + ' ' + (H - B) + ' L' + x(0) + ' ' + (H - B) + ' Z" fill="url(#arGrad)"/>';
-    out += '<path class="ln' + (chartDrawn ? '' : ' draw') + '" pathLength="1" d="' + line + '"/>';
-    out += '<circle class="dot" cx="' + x(0) + '" cy="' + y(pts[0].w) + '" r="5"/>';
-    out += '<circle class="dot end" cx="' + x(last.wk) + '" cy="' + y(last.w) + '" r="6"/>';
-    if (actual.length > 1) out += '<polyline class="act-line" points="' + actual.map((a) => x(a.wk).toFixed(1) + ',' + y(a.w).toFixed(1)).join(' ') + '"/>';
-    actual.forEach((a) => { out += '<circle class="act-dot" cx="' + x(a.wk).toFixed(1) + '" cy="' + y(a.w).toFixed(1) + '" r="5"/>'; });
-    svg.innerHTML = out;
-    chartDrawn = true;
-  }
-
-  const ICONS = {
-    drop: '<path d="M12 3c3.5 4.2 6 7.6 6 10.5a6 6 0 0 1-12 0C6 10.6 8.5 7.2 12 3z"/>',
-    gym: '<path d="M3 10v4M6 7v10M18 7v10M21 10v4M6 12h12"/>',
-    moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
-    scale: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 10a4 4 0 0 1 6 0l-3 2.5"/>',
-    cal: '<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/>',
-    bowl: '<path d="M4 11h16a8 8 0 0 1-16 0z"/><path d="M9 7c0-1.5 1-2 1-3M14 7c0-1.5 1-2 1-3"/>',
-    flame: '<path d="M12 3c.6 3.2 4.5 5 4.5 9.5a4.5 4.5 0 0 1-9 0c0-2.2 1.2-3.6 2.3-4.6.1 1.7.8 2.8 1.9 3.1-.4-2.8-.6-5.2.3-8z"/>',
-    trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 3M16 6h3a3 3 0 0 1-3 3M12 13v4M8 20h8"/>',
-    star: '<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>',
-    target: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/>',
-    bolt: '<path d="M13.5 2 4 13.5h6.5L9.5 22 20 9.5h-6.5z"/>'
-  };
-  const ico = (k) => '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">' + ICONS[k] + '</svg>';
-
+  // ---------- plan view ----------
   function render() {
     const s = read();
     const bad = [s.age, s.h, s.w, s.goal].some((v) => !isFinite(v)) || s.age < 15 || s.age > 90 || s.h < 130 || s.h > 230 || s.w < 35 || s.w > 300 || s.goal < 35 || s.goal > 300;
@@ -670,9 +840,9 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
     if (bad) {
       notice.hidden = false;
       notice.textContent = 'تحقق من القيم: العمر بين 15 و90، الطول بين 130 و230 سم، والوزن بين 35 و300 كغ.';
-      return;
+      return false;
     }
-    try { localStorage.setItem(KEY, JSON.stringify({ sex: s.sex, age: s.age, height: s.h, weight: s.w, goal: s.goal, activity: s.act, pace: s.pace })); } catch (e) {}
+    store.set('calorie-plan-inputs', { sex: s.sex, age: s.age, height: s.h, weight: s.w, goal: s.goal, activity: s.act, pace: s.pace });
 
     const bmr = bmrOf(s, s.w), tdee = bmr * s.act;
     const sim = simulate(s);
@@ -681,45 +851,34 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
     if (sim.dir < 0) target = Math.max(sim.floor, target);
     const bmi = s.w / Math.pow(s.h / 100, 2);
     const goalBmi = s.goal / Math.pow(s.h / 100, 2);
+    currentS = s; currentTarget = target; currentDir = sim.dir; currentTdee = r10(tdee); lastSim = sim;
 
     animateNum($('o-bmr'), r10(bmr));
     animateNum($('o-tdee'), r10(tdee));
     animateNum($('o-target'), target);
     animateNum($('o-bmi'), Math.round(bmi * 10) / 10, 1);
     $('o-bmic').textContent = bmiCat(bmi);
-    currentTarget = target; currentDir = sim.dir; currentS = s; currentTdee = r10(tdee); renderLog();
 
     const last = sim.pts[sim.pts.length - 1];
     const weeks = Math.ceil(last.wk);
     const reached = sim.dir === 0 || Math.abs(last.w - s.goal) < 0.05;
-    const date = new Date(); date.setDate(date.getDate() + Math.round(last.wk * 7));
+    const date = new Date(planStart); date.setDate(date.getDate() + Math.round(last.wk * 7));
     const dateStr = date.toLocaleDateString('ar-u-nu-latn', { month: 'long', year: 'numeric' });
     const diff = Math.abs(s.goal - s.w);
-
-    if (sim.dir === 0) {
-      $('o-goal').innerHTML = 'هدفك <strong>تثبيت الوزن</strong>. التزم بنحو ' + fmt(r10(tdee)) + ' سعرة يومياً.';
-    } else if (reached) {
-      $('o-goal').innerHTML = (sim.dir < 0 ? 'خسارة ' : 'زيادة ') + '<strong>' + fmt(diff, 1) + ' كغ</strong> خلال نحو <strong>' + fmt(weeks) + ' أسبوعاً</strong>، أي تقريباً في <strong>' + dateStr + '</strong>.';
-    } else {
-      $('o-goal').innerHTML = 'بهذه السرعة لن يصل المنحنى للهدف خلال 3 سنوات. جرّب سرعة أعلى أو زد نشاطك.';
-    }
+    if (sim.dir === 0) $('o-goal').innerHTML = 'هدفك <strong>تثبيت الوزن</strong>. التزم بنحو ' + fmt(r10(tdee)) + ' سعرة يومياً.';
+    else if (reached) $('o-goal').innerHTML = (sim.dir < 0 ? 'خسارة ' : 'زيادة ') + '<strong>' + fmt(diff, 1) + ' كغ</strong> خلال نحو <strong>' + fmt(weeks) + ' أسبوعاً</strong>، أي تقريباً في <strong>' + dateStr + '</strong>.';
+    else $('o-goal').innerHTML = 'بهذه السرعة لن يصل المنحنى للهدف خلال 3 سنوات. جرّب سرعة أعلى أو زد نشاطك.';
     if (ad.kcal !== 0) $('o-goal').innerHTML += '<br><span class="adj">' + esc(ad.msg) + '</span>';
-    const wl = weightLog[weightLog.length - 1];
-    $('w-status').textContent = wl
-      ? 'آخر وزن ' + fmt(wl.w, 1) + ' كغ، والمتوقع في نفس اليوم ' + fmt(weightAt(sim, wkOf(wl.d)), 1) + ' كغ. ' + ad.msg
-      : 'سجّل وزنك مرة في الأسبوع صباحاً، وبيطلع على المنحنى باللون الوردي، ونعدّل سعراتك على حسب تقدمك.';
-    renderWList();
 
     const msgs = [];
-    if (sim.clamped) msgs.push('خفّضنا العجز حتى لا تنزل سعراتك عن ' + fmt(sim.floor) + ' سعرة يومياً، وهو الحد الأدنى الآمن تقريباً. لهذا قد يكون التقدم أبطأ من السرعة التي اخترتها، وزيادة النشاط تساعدك على تسريعه.');
+    if (sim.clamped) msgs.push('خفّضنا العجز حتى لا تنزل سعراتك عن ' + fmt(sim.floor) + ' سعرة يومياً، وهو الحد الأدنى الآمن تقريباً. لهذا قد يكون التقدم أبطأ من السرعة التي اخترتها.');
     if (sim.dir > 0 && s.pace > 0.5) msgs.push('للزيادة حددنا السرعة بـ 0.5 كغ أسبوعياً حتى يكون معظم الوزن عضلاً وليس دهوناً.');
     if (goalBmi < 18.5) msgs.push('الوزن المستهدف يقع تحت الوزن الطبيعي لطولك (مؤشر ' + fmt(goalBmi, 1) + '). ننصح باستشارة مختص قبل المتابعة.');
     if (sim.dir < 0 && s.pace >= 1 && !sim.clamped) msgs.push('خسارة 1 كغ أسبوعياً سرعة عالية، تصلح غالباً لمن لديهم وزن زائد كبير. راقب طاقتك ونومك.');
     notice.hidden = msgs.length === 0;
     notice.innerHTML = msgs.join('<br>');
 
-    drawChart(sim, s);
-
+    // milestones
     const rows = [];
     for (let wk = 0; wk < last.wk; wk += 4) rows.push(sim.pts.find((q) => q.wk >= wk) || last);
     if (sim.dir !== 0) rows.push(last);
@@ -729,9 +888,11 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
       return '<tr><td>' + name + '</td><td>' + fmt(Math.round(p.wk)) + '</td><td>' + fmt(p.w, 1) + ' كغ</td><td>' + fmt(r10(isEnd ? bmrOf(s, p.w) * s.act : p.kcal)) + (isEnd ? ' (تثبيت)' : '') + '</td></tr>';
     }).join('');
 
+    // macros
     const pPerKg = sim.dir < 0 ? 2.0 : sim.dir > 0 ? 1.8 : 1.6;
     const refW = Math.min(s.w, 25 * Math.pow(s.h / 100, 2) + 10);
     const protein = Math.round(refW * pPerKg);
+    proteinTarget = protein;
     const fat = Math.round(target * 0.27 / 9);
     const carbs = Math.max(0, Math.round((target - protein * 4 - fat * 9) / 4));
     const tot = protein * 4 + fat * 9 + carbs * 4;
@@ -755,304 +916,228 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
     $('o-meals').innerHTML = meals.map((m) => '<div class="meal"><div class="top"><h3>' + m[0] + '</h3><span class="kc">' + fmt(r10(target * m[1])) + ' سعرة</span></div><p>' + m[2] + '</p></div>').join('');
 
     const water = Math.round(s.w * 0.033 * 10) / 10;
+    waterGoal = Math.max(4, Math.round(water / 0.25));
     const habits = [
       ['drop', fmt(water, 1) + ' لتر ماء', 'يومياً، وكوب قبل كل وجبة يساعد على الشبع.'],
       ['gym', lose ? '8,000+ خطوة' : '3 تمارين مقاومة', lose ? 'مشي يومي يرفع الحرق دون أن يزيد الجوع كثيراً.' : 'أسبوعياً حتى تتحول الزيادة إلى عضل.'],
       ['moon', '7–8 ساعات نوم', 'قلة النوم ترفع الشهية وتبطئ التقدم.'],
-      ['scale', 'وزن أسبوعي', 'صباحاً في نفس اليوم كل أسبوع، وقارن المتوسط لا الرقم الواحد.'],
-      ['cal', 'كل 4 أسابيع', 'ارجع لهذه الصفحة وأدخل وزنك الجديد لتحديث سعراتك.']
+      ['scale', '3 أوزان أسبوعياً', 'صباحاً بعد الحمام، وخط الاتجاه يتكفل بالتذبذب.'],
+      ['leaf', 'نص الطبق خضار', 'أكل أخضر خفيف يملّي المعدة بسعرات قليلة.']
     ];
     $('o-habits').innerHTML = habits.map((h) => '<li><div class="hi">' + ico(h[0]) + '</div><div><b>' + h[1] + '</b><span>' + h[2] + '</span></div></li>').join('');
-    waterGoal = Math.max(4, Math.round(water / 0.25));
-    renderWater();
+
+    renderExChips();
+    renderWeight();
+    return true;
   }
 
-  // ---------- meal photo analysis + daily log ----------
-  let currentTarget = 0, currentDir = 0, currentS = null, currentTdee = 0;
-  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const num = (v) => Math.max(0, Math.round(Number(v) || 0));
-  const todayKey = () => { const d = new Date(); return 'meal-log-' + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
-  let mealLog = [];
-  try { mealLog = JSON.parse(localStorage.getItem(todayKey()) || '[]'); if (!Array.isArray(mealLog)) mealLog = []; } catch (e) { mealLog = []; }
-  function saveLog() { try { localStorage.setItem(todayKey(), JSON.stringify(mealLog)); } catch (e) {} }
-
-  function renderLog() {
-    const eaten = mealLog.reduce((a, m) => a + (m.kcal || 0), 0);
-    const left = currentTarget - eaten;
-    const pct = currentTarget ? Math.round(eaten / currentTarget * 100) : 0;
-    $('log-sum').innerHTML = 'أكلت <strong>' + fmt(eaten) + '</strong> من ' + fmt(currentTarget) + ' سعرة · ' + (left >= 0 ? 'باقي ' + fmt(left) + ' سعرة' : 'تجاوزت هدفك بـ ' + fmt(-left) + ' سعرة');
-    $('ring').classList.toggle('over', left < 0);
-    $('ring-fg').setAttribute('stroke-dasharray', Math.min(100, pct) + ' 100');
-    $('ring-pct').textContent = fmt(pct) + '%';
-    $('log-badge').hidden = !(pct >= 90 && pct <= 105);
-    $('log-list').innerHTML = mealLog.length
-      ? mealLog.map((m, i) => '<li><span>' + esc(m.name) + '</span><span class="kc">' + fmt(m.kcal) + ' سعرة</span><button type="button" class="xbtn" data-i="' + i + '" aria-label="حذف ' + esc(m.name) + '">×</button></li>').join('')
-      : '<li class="empty">لم تسجّل أي وجبة اليوم. صوّر وجبتك ثم اضغط «أضف إلى سجل اليوم».</li>';
-  }
-  $('log-list').addEventListener('click', (e) => {
-    const b = e.target.closest('.xbtn'); if (!b) return;
-    mealLog.splice(+b.dataset.i, 1); saveLog(); renderLog(); refreshMotivation(false);
-  });
-
-  // ---------- weight log: actual vs plan, with auto adjustment ----------
-  const WEEK = 7 * 864e5;
-  const dayStart = (t) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
-  let planStart = dayStart(Date.now());
-  try { const v = Number(localStorage.getItem('plan-start')); if (v > 0) planStart = v; else localStorage.setItem('plan-start', String(planStart)); } catch (e) {}
-  let weightLog = [];
-  try { weightLog = JSON.parse(localStorage.getItem('weight-log') || '[]'); if (!Array.isArray(weightLog)) weightLog = []; } catch (e) { weightLog = []; }
-  weightLog = weightLog.filter((e) => e && isFinite(e.d) && isFinite(e.w)).sort((a, b) => a.d - b.d);
-  function saveW() { try { localStorage.setItem('weight-log', JSON.stringify(weightLog)); localStorage.setItem('plan-start', String(planStart)); } catch (e) {} }
-  const wkOf = (t) => Math.max(0, (t - planStart) / WEEK);
-  function weightAt(sim, t) {
-    const p = sim.pts;
-    if (t <= 0) return p[0].w;
-    for (let i = 1; i < p.length; i++) {
-      if (p[i].wk >= t) { const a = p[i - 1], b = p[i]; return a.w + (b.w - a.w) * (t - a.wk) / ((b.wk - a.wk) || 1); }
+  // ---------- weight chart ----------
+  let chartDrawn = false;
+  function drawChart() {
+    const sim = lastSim, s = currentS;
+    if (!sim) return;
+    const svg = $('chart');
+    const W = 640, H = 270, L = 48, R = 20, T = 20, B = 36;
+    const pts = sim.pts;
+    const tr = trendSeries().map((e) => ({ wk: wkOf(e.d), w: e.w, t: e.t }));
+    const maxWk = Math.max(pts[pts.length - 1].wk, 4, ...tr.map((a) => a.wk));
+    const ws = pts.map((p) => p.w).concat(tr.map((a) => a.w));
+    let lo = Math.min(...ws, s.goal), hi = Math.max(...ws, s.goal);
+    const pad = Math.max((hi - lo) * 0.15, 1.5);
+    const yStep = niceStep(hi - lo + pad * 2, 5);
+    lo = Math.floor((lo - pad) / yStep) * yStep; hi = Math.ceil((hi + pad) / yStep) * yStep;
+    const x = (wk) => W - R - (wk / maxWk) * (W - L - R);
+    const y = (v) => T + (hi - v) / (hi - lo) * (H - T - B);
+    let out = '<defs><linearGradient id="lnGrad" x1="1" y1="0" x2="0" y2="0"><stop offset="0" style="stop-color:var(--cyan)"/><stop offset="1" style="stop-color:var(--lime-ink)"/></linearGradient>' +
+      '<linearGradient id="arGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--cyan);stop-opacity:.22"/><stop offset="1" style="stop-color:var(--cyan);stop-opacity:0"/></linearGradient></defs>';
+    for (let v = lo; v <= hi + 1e-6; v += yStep) {
+      out += '<line class="ax" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v) + '" y2="' + y(v) + '"/>';
+      out += '<text class="axt" x="' + (L - 8) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + fmt(v, yStep < 1 ? 1 : 0) + '</text>';
     }
-    return p[p.length - 1].w;
-  }
-  function kcalAt(sim, s, t) {
-    const p = sim.pts;
-    if (sim.dir === 0) return p[0].kcal;
-    for (let i = 1; i < p.length; i++) if (p[i].wk >= t) return p[i].kcal;
-    return bmrOf(s, p[p.length - 1].w) * s.act;
-  }
-  function adaptive(sim) {
-    if (sim.dir === 0 || weightLog.length < 2) return { kcal: 0, msg: '' };
-    const first = weightLog[0], last = weightLog[weightLog.length - 1];
-    const spanWk = (last.d - first.d) / WEEK;
-    if (spanWk < 2) return { kcal: 0, msg: 'سجّل وزنك أسبوعين على الأقل حتى نقارن تقدمك بالخطة.' };
-    const actualRate = (last.w - first.w) / spanWk;
-    const expRate = (weightAt(sim, wkOf(last.d)) - weightAt(sim, wkOf(first.d))) / spanWk;
-    const gap = actualRate - expRate;
-    if (Math.abs(gap) < 0.1) return { kcal: 0, msg: 'تقدمك مطابق للخطة، استمر.' };
-    const kcal = Math.max(-250, Math.min(250, Math.round(-gap * 1100 / 10) * 10));
-    let msg;
-    if (sim.dir < 0) msg = kcal < 0 ? 'وزنك ينزل أبطأ من الخطة، فخفّضنا هدفك ' + fmt(-kcal) + ' سعرة.' : 'وزنك ينزل أسرع من الخطة، فزدنا هدفك ' + fmt(kcal) + ' سعرة حتى تحافظ على عضلاتك.';
-    else msg = kcal < 0 ? 'وزنك يزيد أسرع من الخطة، فخفّضنا هدفك ' + fmt(-kcal) + ' سعرة.' : 'وزنك يزيد أبطأ من الخطة، فزدنا هدفك ' + fmt(kcal) + ' سعرة.';
-    return { kcal, msg };
-  }
-  function renderWList() {
-    $('w-list').innerHTML = weightLog.map((e, i) => '<li><span>' + new Date(e.d).toLocaleDateString('ar-u-nu-latn', { weekday: 'long', day: 'numeric', month: 'long' }) + '</span><span class="kc">' + fmt(e.w, 1) + ' كغ</span><button type="button" class="xbtn" data-i="' + i + '" aria-label="حذف هذا الوزن">×</button></li>').reverse().join('');
-  }
-  $('w-add').addEventListener('click', () => {
-    const v = parseFloat($('w-today').value);
-    if (!isFinite(v) || v < 35 || v > 300) { $('w-status').textContent = 'اكتب وزنك بين 35 و300 كغ.'; return; }
-    const prev = weightLog.length ? weightLog[weightLog.length - 1].w : null;
-    const nw = Math.round(v * 10) / 10;
-    const d = dayStart(Date.now());
-    weightLog = weightLog.filter((e) => e.d !== d);
-    weightLog.push({ d, w: nw });
-    weightLog.sort((a, b) => a.d - b.d);
-    saveW(); $('w-today').value = ''; render();
-    if (prev != null && currentDir < 0 && nw < prev) celebrate('نزلت ' + fmt(prev - nw, 1) + ' كغ عن آخر وزن!');
-    if (prev != null && currentDir > 0 && nw > prev) celebrate('زاد وزنك ' + fmt(nw - prev, 1) + ' كغ نحو هدفك!');
-    refreshMotivation(true);
-  });
-  $('w-today').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $('w-add').click(); } });
-  $('w-list').addEventListener('click', (e) => {
-    const b = e.target.closest('.xbtn'); if (!b) return;
-    weightLog.splice(+b.dataset.i, 1); saveW(); render(); refreshMotivation(false);
-  });
-  let resetArmed = false, resetTimer = 0;
-  $('w-reset').addEventListener('click', () => {
-    const b = $('w-reset');
-    const disarm = () => { resetArmed = false; b.textContent = 'ابدأ خطة جديدة من اليوم'; b.classList.remove('confirm'); };
-    if (!resetArmed) {
-      resetArmed = true; b.textContent = 'اضغط مرة ثانية لمسح سجل الوزن والبدء من اليوم'; b.classList.add('confirm');
-      clearTimeout(resetTimer); resetTimer = setTimeout(disarm, 5000);
-      return;
+    const xStep = niceStep(maxWk, 6);
+    for (let wk = 0; wk <= maxWk + 1e-6; wk += xStep) out += '<text class="axt" x="' + x(wk) + '" y="' + (H - 12) + '" text-anchor="middle">' + fmt(wk) + '</text>';
+    out += '<text class="axt" x="' + L + '" y="' + (H - 12) + '" text-anchor="start" dx="-44">أسبوع</text>';
+    const gy = y(s.goal);
+    out += '<line class="gl" x1="' + L + '" x2="' + (W - R) + '" y1="' + gy + '" y2="' + gy + '"/>';
+    out += '<text class="glt" x="' + (L + 6) + '" y="' + (gy + (sim.dir < 0 ? 16 : -7)) + '" text-anchor="start">الهدف ' + fmt(s.goal, 1) + ' كغ</text>';
+    const line = pts.map((p, i) => (i ? 'L' : 'M') + x(p.wk).toFixed(1) + ' ' + y(p.w).toFixed(1)).join(' ');
+    const last = pts[pts.length - 1];
+    out += '<path d="' + line + ' L' + x(last.wk).toFixed(1) + ' ' + (H - B) + ' L' + x(0) + ' ' + (H - B) + ' Z" fill="url(#arGrad)"/>';
+    out += '<path class="ln' + (chartDrawn ? '' : ' draw') + '" pathLength="1" d="' + line + '"/>';
+    out += '<circle class="dot" cx="' + x(0) + '" cy="' + y(pts[0].w) + '" r="5"/>';
+    out += '<circle class="dot end" cx="' + x(last.wk) + '" cy="' + y(last.w) + '" r="6"/>';
+    if (tr.length > 1) {
+      out += '<polyline class="sc-line" points="' + tr.map((a) => x(a.wk).toFixed(1) + ',' + y(a.w).toFixed(1)).join(' ') + '"/>';
+      out += '<polyline class="tr-line" points="' + tr.map((a) => x(a.wk).toFixed(1) + ',' + y(a.t).toFixed(1)).join(' ') + '"/>';
     }
-    clearTimeout(resetTimer); disarm();
-    planStart = dayStart(Date.now()); weightLog = []; saveW(); render(); refreshMotivation(false);
-    $('w-status').textContent = 'بدأت خطة جديدة من اليوم. حدّث وزن البداية في بياناتك.';
-  });
+    tr.forEach((a) => { out += '<circle class="sc-dot" cx="' + x(a.wk).toFixed(1) + '" cy="' + y(a.w).toFixed(1) + '" r="3.5"/>'; });
+    if (tr.length) { const e = tr[tr.length - 1]; out += '<circle class="tr-dot" cx="' + x(e.wk).toFixed(1) + '" cy="' + y(e.t).toFixed(1) + '" r="6"/>'; }
+    svg.innerHTML = out;
+    chartDrawn = true;
+  }
+  function renderWeight() {
+    if (!lastSim) return;
+    drawChart();
+    const tr = trendSeries();
+    const ad = adaptive(lastSim);
+    const l = tr[tr.length - 1];
+    $('w-status').textContent = l
+      ? 'آخر قراءة ' + fmt(l.w, 1) + ' كغ، واتجاه وزنك ' + fmt(l.t, 1) + ' كغ، والمتوقع في نفس اليوم ' + fmt(weightAt(lastSim, wkOf(l.d)), 1) + ' كغ. ' + ad.msg
+      : 'وزّن نفسك صباحاً 3 مرات في الأسبوع أو أكثر، ويطلع وزنك على المنحنى ونعدّل سعراتك على حسب اتجاهه.';
+    $('w-list').innerHTML = weightLog.map((e, i) => '<li><span class="nm">' + new Date(e.d).toLocaleDateString('ar-u-nu-latn', { weekday: 'long', day: 'numeric', month: 'long' }) + '</span><span class="kc">' + fmt(e.w, 1) + ' كغ</span><button type="button" class="xbtn" data-i="' + i + '" aria-label="حذف هذا الوزن">×</button></li>').reverse().slice(0, 8).join('');
+  }
 
-  // ---------- one-tap foods + manual entry ----------
+  // ---------- foods + exercise ----------
   const QUICK = [
-    ['3 تمرات', 70], ['قهوة عربية 3 فناجيل', 10], ['كوب شاي بسكر', 35], ['صحن كبسة دجاج', 550],
-    ['صحن مندي لحم', 700], ['ساندويتش شاورما دجاج', 450], ['5 حبات لقيمات', 300], ['2 سمبوسة مقلية', 260],
-    ['صحن فول بالزيت', 300], ['خبز تميس', 300], ['مطبق لحم', 450], ['صحن حمص', 250],
-    ['كوب لبن', 110], ['كوب حليب كامل', 150], ['بيضة مسلوقة', 75], ['سلطة بزيت زيتون', 150],
-    ['تفاحة', 95], ['موزة', 105]
+    ['3 تمرات', 70, 1, 'o'], ['قهوة عربية 3 فناجيل', 10, 0, 'g'], ['كوب شاي بسكر', 35, 0, 'y'], ['صحن كبسة دجاج', 550, 30, 'y'],
+    ['صحن مندي لحم', 700, 40, 'y'], ['ساندويتش شاورما', 450, 25, 'o'], ['5 حبات لقيمات', 300, 3, 'o'], ['2 سمبوسة مقلية', 260, 8, 'o'],
+    ['صحن فول بالزيت', 300, 14, 'y'], ['خبز تميس', 300, 9, 'o'], ['مطبق لحم', 450, 18, 'o'], ['صحن حمص', 250, 8, 'y'],
+    ['صدر دجاج مشوي', 250, 45, 'y'], ['بيضة مسلوقة', 75, 6, 'y'], ['كوب لبن', 110, 8, 'g'], ['زبادي يوناني', 130, 12, 'g'],
+    ['كوب حليب كامل', 150, 8, 'y'], ['سلطة بزيت زيتون', 150, 2, 'g'], ['تفاحة', 95, 0, 'g'], ['موزة', 105, 1, 'g']
   ];
-  $('quick').innerHTML = QUICK.map((q, i) => '<button type="button" class="chip" data-i="' + i + '"><span>' + q[0] + '</span><b>' + fmt(q[1]) + '</b></button>').join('');
-  function addMeal(name, kcal, extra) {
-    const before = mealLog.reduce((a, m) => a + (m.kcal || 0), 0);
-    mealLog.push(Object.assign({ name, kcal, t: Date.now() }, extra || {}));
-    saveLog(); renderLog();
-    const after = before + kcal, lo = 0.9 * currentTarget, hi = 1.05 * currentTarget;
-    if (currentTarget && before < lo && after >= lo && after <= hi) celebrate('وصلت هدف اليوم بالضبط!');
-    refreshMotivation(true);
+  $('quick').innerHTML = QUICK.map((q, i) => '<button type="button" class="chip" data-i="' + i + '"><i class="fd ' + q[3] + '"></i><span>' + q[0] + '</span><b>' + fmt(q[1]) + '</b></button>').join('');
+  const EX = [['مشي 30 د', 3.5, 0.5], ['جري 30 د', 9.8, 0.5], ['دراجة 30 د', 7, 0.5], ['حديد 45 د', 5, 0.75], ['سباحة 30 د', 8, 0.5], ['كرة قدم 60 د', 7, 1], ['بادل 60 د', 6, 1]];
+  const exKcal = (e) => Math.round(e[1] * currentWeight() * e[2] / 5) * 5;
+  function renderExChips() {
+    $('ex-chips').innerHTML = EX.map((e, i) => '<button type="button" class="chip ex" data-i="' + i + '">' + ico('run') + '<span>' + e[0] + '</span><b>' + fmt(exKcal(e)) + '</b></button>').join('');
   }
-  function mMsg(t, err) { const m = $('m-msg'); m.textContent = t; m.classList.toggle('err', !!err); }
-  $('quick').addEventListener('click', (e) => {
-    const b = e.target.closest('.chip'); if (!b) return;
-    const q = QUICK[+b.dataset.i];
-    addMeal(q[0], q[1]);
-    b.classList.add('added'); setTimeout(() => b.classList.remove('added'), 700);
-    mMsg('أضيفت: ' + q[0] + ' (' + fmt(q[1]) + ' سعرة)');
-  });
-  $('m-add').addEventListener('click', () => {
-    const n = $('m-name').value.trim().slice(0, 60);
-    const k = Math.round(parseFloat($('m-kcal').value));
-    if (!n || !isFinite(k) || k < 1 || k > 5000) { mMsg('اكتب اسم الأكلة وسعراتها (من 1 إلى 5000).', true); return; }
-    addMeal(n, k); $('m-name').value = ''; $('m-kcal').value = '';
-    mMsg('أضيفت: ' + n + ' (' + fmt(k) + ' سعرة)');
-  });
+  const flash = (b) => { b.classList.add('added'); setTimeout(() => b.classList.remove('added'), 700); };
+  function setMsg(id, t, err) { const m = $(id); m.textContent = t; m.classList.toggle('err', !!err); }
 
-  // ---------- water cups ----------
-  let waterGoal = 12, waterCount = 0;
-  const waterKey = () => 'water-' + todayKey().slice(9);
-  try { waterCount = Math.max(0, Number(localStorage.getItem(waterKey())) || 0); } catch (e) {}
-  function renderWater() {
+  // ---------- today ----------
+  const totals = () => ({
+    food: mealLog.reduce((a, m) => a + (m.kcal || 0), 0),
+    pro: mealLog.reduce((a, m) => a + (m.p || 0), 0),
+    ex: exLog.reduce((a, m) => a + (m.kcal || 0), 0)
+  });
+  function dayScore(t) {
+    const budget = currentTarget + t.ex;
+    const r = budget ? t.food / budget : 0;
+    const cal = t.food ? 50 * Math.max(0, 1 - Math.abs(r - 1) / 0.5) : 0;
+    const pro = proteinTarget ? 25 * Math.min(1, t.pro / proteinTarget) : 0;
+    const wat = waterGoal ? 25 * Math.min(1, waterCount / waterGoal) : 0;
+    return Math.round(cal + pro + wat);
+  }
+  const scoreLabel = (n) => (n >= 90 ? 'ممتاز' : n >= 70 ? 'قوي' : n >= 40 ? 'جيد' : 'البداية');
+  function setRing(id, frac) {
+    const el = $(id), p = Math.max(0, Math.min(1, frac || 0)) * 100;
+    el.setAttribute('stroke-dasharray', p.toFixed(2) + ' 100');
+    el.style.opacity = p > 0.5 ? 1 : 0;
+  }
+  function renderToday() {
+    const t = totals();
+    const budget = currentTarget + t.ex, left = budget - t.food;
+    setRing('ring-cal', budget ? t.food / budget : 0);
+    setRing('ring-pro', proteinTarget ? t.pro / proteinTarget : 0);
+    setRing('ring-wat', waterGoal ? waterCount / waterGoal : 0);
+    $('rings').classList.toggle('over', t.food > budget * 1.1);
+    const score = dayScore(t);
+    animateNum($('sc-num'), score);
+    $('sc-lbl').textContent = scoreLabel(score);
+    const big = $('t-big');
+    if (calView === 'left') {
+      animateNum(big, Math.abs(left));
+      big.classList.toggle('over', left < 0);
+      $('t-big-lbl').textContent = left >= 0 ? 'سعرة باقية لك اليوم' : 'سعرة فوق هدفك اليوم';
+    } else {
+      animateNum(big, t.food);
+      big.classList.remove('over');
+      $('t-big-lbl').textContent = 'سعرة أكلتها من ' + fmt(budget);
+    }
+    $('vt-left').setAttribute('aria-pressed', String(calView === 'left'));
+    $('vt-eaten').setAttribute('aria-pressed', String(calView === 'eaten'));
+    $('eq-goal').textContent = fmt(currentTarget);
+    $('eq-food').textContent = fmt(t.food);
+    $('eq-ex').textContent = fmt(t.ex);
+    $('eq-left').textContent = fmt(left);
+    $('lg-cal').textContent = fmt(t.food) + ' / ' + fmt(budget);
+    $('lg-pro').textContent = fmt(t.pro) + ' / ' + fmt(proteinTarget) + ' غ';
+    $('lg-wat').textContent = fmt(waterCount) + ' / ' + fmt(waterGoal) + ' أكواب';
+
+    // log list
+    const items = mealLog.map((m, i) => ({ k: 'm', i, name: m.name, kcal: m.kcal, c: m.c || '', t: m.t || 0 }))
+      .concat(exLog.map((e, i) => ({ k: 'e', i, name: e.name, kcal: e.kcal, c: 'x', t: e.t || 0 })))
+      .sort((a, b) => b.t - a.t);
+    $('log-count').textContent = fmt(mealLog.length) + ' أكلات · ' + fmt(exLog.length) + ' تمارين';
+    $('log-list').innerHTML = items.length
+      ? items.map((it) => '<li><span class="nm">' + (it.c ? '<i class="fd ' + it.c + '"></i>' : '<i class="fd" style="background:var(--muted)"></i>') + esc(it.name) + '</span><span class="kc' + (it.k === 'e' ? ' ex' : '') + '">' + (it.k === 'e' ? '+' : '') + fmt(it.kcal) + ' سعرة</span><button type="button" class="xbtn" data-k="' + it.k + '" data-i="' + it.i + '" aria-label="حذف ' + esc(it.name) + '">×</button></li>').join('')
+      : '<li><span class="empty">ما سجلت شي اليوم. اضغط على أي أكلة من «أضف أكلك» أو صوّر وجبتك، وتبدأ الحلقات تتعبى.</span></li>';
+
+    // color mix
+    const mix = { g: 0, y: 0, o: 0 };
+    mealLog.forEach((m) => { if (mix[m.c] != null) mix[m.c] += m.kcal || 0; });
+    const mt = mix.g + mix.y + mix.o;
+    $('mix-bar').innerHTML = mt ? ['g', 'y', 'o'].map((c) => '<span style="width:' + (mix[c] / mt * 100).toFixed(1) + '%;background:var(' + (c === 'g' ? '--lime' : c === 'y' ? '--fy' : '--flame') + ')"></span>').join('') : '';
+    $('mix-key').innerHTML = mt
+      ? '<span><i class="fd g"></i>أخضر ' + fmt(Math.round(mix.g / mt * 100)) + '%</span><span><i class="fd y"></i>أصفر ' + fmt(Math.round(mix.y / mt * 100)) + '%</span><span><i class="fd o"></i>برتقالي ' + fmt(Math.round(mix.o / mt * 100)) + '%</span>'
+      : '<span>توازن ألوان أكلك يطلع هنا بعد ما تسجل.</span>';
+
+    // water
     const n = Math.max(waterGoal, waterCount) + (waterCount >= waterGoal ? 1 : 0);
     let h = '';
     for (let i = 0; i < n; i++) h += '<button type="button" class="cup' + (i < waterCount ? ' on' : '') + '" data-i="' + i + '" aria-label="كوب ' + (i + 1) + '" aria-pressed="' + (i < waterCount) + '">' + ico('drop') + '</button>';
     $('cups').innerHTML = h;
-    $('water-sum').textContent = fmt(waterCount) + ' من ' + fmt(waterGoal) + ' أكواب · ' + fmt(waterCount * 0.25, 2) + ' لتر';
+    $('water-sum').textContent = fmt(waterCount) + ' من ' + fmt(waterGoal) + ' · ' + fmt(waterCount * 0.25, 2) + ' لتر';
+    return { t, score };
   }
-  $('cups').addEventListener('click', (e) => {
-    const b = e.target.closest('.cup'); if (!b) return;
-    const i = +b.dataset.i;
-    const prevW = waterCount;
-    waterCount = (i + 1 === waterCount) ? i : i + 1;
-    try { localStorage.setItem(waterKey(), String(waterCount)); } catch (err) {}
-    renderWater();
-    if (prevW < waterGoal && waterCount >= waterGoal) celebrate('كمّلت ماء اليوم!');
-    refreshMotivation(true);
-  });
 
-  const samplePromise = window.claude ? window.claude.use('sample').catch(() => null) : Promise.resolve(null);
-  samplePromise.then((s) => {
-    const pill = $('snap-pill');
-    if (!s) { $('snap').hidden = true; return; } if (!s) { pill.textContent = 'غير متاح في هذا العرض'; pill.classList.add('off'); return; }
-    s.limits().then((l) => { if (!l || !l.images) { pill.textContent = 'الصور غير متاحة هنا'; pill.classList.add('off'); } }).catch(() => {});
-  });
-
-  let snapFile = null, snapResult = null, ctl = null;
-  function setMsg(t, err) { const m = $('snap-msg'); m.textContent = t || ''; m.classList.toggle('err', !!err); }
-  function setFile(f) {
-    if (!f || !/^image\//.test(f.type)) { setMsg('اختر ملف صورة مثل JPG أو PNG.', true); return; }
-    snapFile = f;
-    const img = $('snap-img');
-    if (img.dataset.url) URL.revokeObjectURL(img.dataset.url);
-    const u = URL.createObjectURL(f); img.src = u; img.dataset.url = u; img.hidden = false;
-    $('drop-empty').hidden = true; $('snap-out').hidden = true;
-    const go = $('snap-go'); go.disabled = false; go.classList.add('primary');
-    setMsg('الصورة جاهزة. اضغط «احسب السعرات».');
-  }
-  ['snap-cam', 'snap-pick'].forEach((id) => $(id).addEventListener('change', (e) => { setFile(e.target.files[0]); e.target.value = ''; }));
-  const drop = $('drop');
-  drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
-  drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-  drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('over'); setFile(e.dataTransfer.files[0]); });
-  document.addEventListener('paste', (e) => {
-    const f = Array.from((e.clipboardData && e.clipboardData.files) || []).find((x) => /^image\//.test(x.type));
-    if (f) setFile(f);
-  });
-
-  const errCopy = {
-    not_granted: 'لم يُسمح للصفحة باستخدام Claude، لذلك لا يمكن تحليل الصور.',
-    sampling_disabled: 'Claude غير متاح لهذا الحساب.',
-    images_unavailable: 'إرسال الصور غير متاح في هذا العرض.',
-    image_rejected: 'تعذّرت قراءة الصورة. جرّب صورة JPG أو PNG أصغر.',
-    rate_limited: 'طلبات كثيرة في وقت قصير. حاول بعد دقيقة.',
-    session_expired: 'انتهت الجلسة. سجّل الدخول من جديد ثم حاول.',
-    invalid_json: 'لم تكتمل الإجابة. اضغط «احسب السعرات» مرة أخرى.',
-    refused: 'تعذّر تحليل هذه الصورة. جرّب صورة أخرى للطبق.'
-  };
-
-  $('snap-stop').addEventListener('click', () => { if (ctl) ctl.abort(); });
-  $('snap-go').addEventListener('click', async () => {
-    if (!snapFile) return;
-    const go = $('snap-go');
-    go.disabled = true;
-    setMsg('جارٍ تحليل الصورة… قد يستغرق ذلك حتى دقيقة.');
-    const sample = await samplePromise;
-    if (!sample) { setMsg('تحليل الصور يعمل فقط عند فتح الصفحة داخل Claude.', true); go.disabled = false; return; }
-    $('snap-stop').hidden = false;
-    ctl = new AbortController();
-    const goalTxt = currentDir < 0 ? 'lose weight' : currentDir > 0 ? 'gain weight' : 'maintain weight';
-    const note = $('snap-note').value.trim().slice(0, 300);
-    const prompt = [
-      'You estimate the nutrition of a meal from a photo for a calorie-tracking app.',
-      'Look at the attached photo. List each visible food or drink, estimate its portion (household measure plus grams), and estimate calories, protein, carbohydrates and fat for that portion.',
-      'When a dish is regional (for example kabsa, mandi, hummus, shawarma, mutabbaq), use typical Gulf and Middle-Eastern recipes, and count visible oil, ghee, sauces and sweet drinks.',
-      'Viewer note about the meal (may be empty, trust it for portions): "' + note + '"',
-      'Viewer goal: ' + goalTxt + '. Daily calorie target: ' + currentTarget + ' kcal.',
-      'Reply with only this JSON. Write every text value in Arabic:',
-      '{"is_food": true, "meal_name": "short meal name", "items": [{"name": "item", "portion": "كوب واحد (~150 غ)", "kcal": 0, "protein_g": 0, "carbs_g": 0, "fat_g": 0}], "confidence": "high|medium|low", "tip": "one short practical sentence for this goal"}',
-      'If the photo shows no food or drink, reply {"is_food": false, "items": []}.'
-    ].join('\n');
-    try {
-      const r = await sample.json(prompt, { images: snapFile, signal: ctl.signal });
-      if (!r || r.is_food === false || !Array.isArray(r.items) || !r.items.length) {
-        setMsg('لم أتعرف على طعام في هذه الصورة. جرّب صورة أوضح للطبق من الأعلى.', true);
-        return;
-      }
-      const items = r.items.slice(0, 20).map((it) => ({
-        name: String(it.name || 'صنف'), portion: String(it.portion || ''),
-        kcal: num(it.kcal), p: num(it.protein_g), c: num(it.carbs_g), f: num(it.fat_g)
-      }));
-      const sum = (k) => items.reduce((a, it) => a + it[k], 0);
-      snapResult = { name: String(r.meal_name || 'وجبة'), items, kcal: sum('kcal'), p: sum('p'), c: sum('c'), f: sum('f'), conf: String(r.confidence || ''), tip: String(r.tip || '') };
-      showResult();
-      setMsg('');
-    } catch (e) {
-      if (e && e.code === 'cancelled') setMsg('أوقفت التحليل.');
-      else setMsg((e && errCopy[e.code]) || 'حدث خطأ مؤقت. حاول مرة أخرى.', true);
-    } finally {
-      go.disabled = !snapFile; $('snap-stop').hidden = true; ctl = null;
-    }
-  });
-
-  function showResult() {
-    const r = snapResult, out = $('snap-out');
-    const conf = { high: 'عالية', medium: 'متوسطة', low: 'منخفضة' }[r.conf] || 'متوسطة';
-    const pct = currentTarget ? Math.round(r.kcal / currentTarget * 100) : 0;
-    out.innerHTML =
-      '<div class="snap-total"><div><div class="lbl">' + esc(r.name) + '</div><span class="big">' + fmt(r.kcal) + '</span> سعرة</div><span class="pill">دقة التقدير: ' + conf + '</span></div>' +
-      '<p class="goalline">هذه الوجبة تمثل <strong>' + fmt(pct) + '%</strong> من هدفك اليومي · بروتين ' + fmt(r.p) + ' غ · كربوهيدرات ' + fmt(r.c) + ' غ · دهون ' + fmt(r.f) + ' غ</p>' +
-      '<div class="tbl"><table><thead><tr><th>الصنف</th><th>الكمية التقديرية</th><th>سعرات</th><th>بروتين</th><th>كربوهيدرات</th><th>دهون</th></tr></thead><tbody>' +
-      r.items.map((it) => '<tr><td>' + esc(it.name) + '</td><td>' + esc(it.portion) + '</td><td>' + fmt(it.kcal) + '</td><td>' + fmt(it.p) + ' غ</td><td>' + fmt(it.c) + ' غ</td><td>' + fmt(it.f) + ' غ</td></tr>').join('') +
-      '</tbody></table></div>' +
-      (r.tip ? '<p class="hint">' + esc(r.tip) + '</p>' : '') +
-      '<div><button type="button" class="btn primary" id="snap-add">أضف إلى سجل اليوم</button></div>';
-    out.hidden = false;
-  }
-  $('snap-out').addEventListener('click', (e) => {
-    const b = e.target.closest('#snap-add'); if (!b || !snapResult) return;
-    addMeal(snapResult.name, snapResult.kcal, { p: snapResult.p, c: snapResult.c, f: snapResult.f });
-    b.disabled = true; b.textContent = 'أضيفت إلى سجل اليوم';
-  });
-
-  // ---------- motivation: streak, savings, badges, celebrations ----------
-  const DAYL = ['ح', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'];
-  const ds = (d) => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+  // ---------- history + streak + badges ----------
   function dayStats() {
-    const meals = {}, waters = {};
+    const days = {};
+    const get = (k) => (days[k] = days[k] || { food: 0, n: 0, ex: 0, water: 0 });
     try {
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
-        if (k && k.indexOf('meal-log-') === 0) {
-          const arr = JSON.parse(localStorage.getItem(k) || '[]');
-          if (Array.isArray(arr)) meals[k.slice(9)] = { total: arr.reduce((a, m) => a + (m.kcal || 0), 0), n: arr.length };
-        } else if (k && k.indexOf('water-') === 0) {
-          waters[k.slice(6)] = Number(localStorage.getItem(k)) || 0;
+        if (!k) continue;
+        if (k.indexOf('meal-log-') === 0) {
+          const a = arr(store.get(k, []));
+          const d = get(k.slice(9)); d.food = a.reduce((s, m) => s + (m.kcal || 0), 0); d.n = a.length;
+        } else if (k.indexOf('ex-log-') === 0) {
+          get(k.slice(7)).ex = arr(store.get(k, [])).reduce((s, m) => s + (m.kcal || 0), 0);
+        } else if (k.indexOf('water-') === 0) {
+          get(k.slice(6)).water = Number(store.get(k, 0)) || 0;
         }
       }
     } catch (e) {}
-    const today = ds(new Date());
-    meals[today] = { total: mealLog.reduce((a, m) => a + (m.kcal || 0), 0), n: mealLog.length };
-    waters[today] = waterCount;
-    return { meals, waters, today };
+    const t = totals(), d = get(todayStr());
+    d.food = t.food; d.n = mealLog.length; d.ex = t.ex; d.water = waterCount;
+    return days;
   }
-  function metDay(st) {
-    if (!st || !st.n || !currentTarget) return false;
-    return currentDir > 0 ? st.total >= 0.9 * currentTarget : (st.total >= 0.7 * currentTarget && st.total <= 1.1 * currentTarget);
+  function metDay(d) {
+    if (!d || !d.n || !currentTarget) return false;
+    const b = currentTarget + (d.ex || 0);
+    return currentDir > 0 ? d.food >= 0.9 * b : (d.food >= 0.7 * b && d.food <= 1.1 * b);
   }
+  let frz = store.get('freezes', null);
+  if (!frz || typeof frz.n !== 'number') frz = { n: 0, last: 0, ever: false };
+  let frozenDays = arr(store.get('frozen-days', []));
+  const saveFrz = () => { store.set('freezes', frz); store.set('frozen-days', frozenDays.slice(-150)); };
+  function streakInfo(days) {
+    const base = noonOf(Date.now());
+    const isMet = (d) => metDay(days[ds(d)]);
+    const isFz = (d) => frozenDays.indexOf(ds(d)) >= 0;
+    let used = 0;
+    const gap = [];
+    let c = addDays(base, -1), found = false;
+    for (let i = 0; i < 60; i++) { if (isMet(c)) { found = true; break; } if (!isFz(c)) gap.push(ds(c)); c = addDays(c, -1); }
+    if (found && gap.length && gap.length <= frz.n) { frozenDays = frozenDays.concat(gap); frz.n -= gap.length; used = gap.length; saveFrz(); }
+    const todayMet = isMet(base);
+    let streak = 0;
+    c = todayMet ? new Date(base) : addDays(base, -1);
+    for (let guard = 0; guard < 4000; guard++) {
+      if (isMet(c)) streak++;
+      else if (!isFz(c)) break;
+      c = addDays(c, -1);
+    }
+    let earnedFreeze = false;
+    if (streak < frz.last) frz.last = streak;
+    if (Math.floor(streak / 7) > Math.floor(frz.last / 7)) {
+      if (frz.n < 2) { frz.n++; earnedFreeze = true; frz.ever = true; }
+      frz.last = streak; saveFrz();
+    } else if (streak > frz.last) { frz.last = streak; saveFrz(); }
+    return { streak, todayMet, used, earnedFreeze, isMet, isFz, base };
+  }
+
   const BADGES = [
     { id: 'meal1', name: 'البداية', desc: 'سجّل أول وجبة', icon: 'bowl', test: (d) => d.meals >= 1 },
     { id: 'meal10', name: '10 وجبات', desc: 'سجّل 10 وجبات', icon: 'bowl', test: (d) => d.meals >= 10 },
@@ -1060,109 +1145,177 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
     { id: 'st3', name: '3 أيام نار', desc: 'التزم 3 أيام ورا بعض', icon: 'flame', test: (d) => d.best >= 3 },
     { id: 'st7', name: 'أسبوع حديد', desc: 'التزم 7 أيام ورا بعض', icon: 'flame', test: (d) => d.best >= 7 },
     { id: 'st30', name: 'شهر أسطوري', desc: 'التزم 30 يوم ورا بعض', icon: 'trophy', test: (d) => d.best >= 30 },
+    { id: 'shield', name: 'درع السلسلة', desc: 'اكسب أول درع حماية', icon: 'shield', test: (d) => d.shield },
+    { id: 'score90', name: 'يوم مثالي', desc: 'اجمع 90 نقطة في يوم', icon: 'target', test: (d) => d.bestScore >= 90 },
     { id: 'water1', name: 'مرتوي', desc: 'كمّل أكواب الماء يوم كامل', icon: 'drop', test: (d) => d.waterDays >= 1 },
     { id: 'water7', name: 'نهر جاري', desc: 'كمّل الماء 7 أيام', icon: 'drop', test: (d) => d.waterDays >= 7 },
+    { id: 'ex1', name: 'أول تمرين', desc: 'سجّل تمرين إضافي', icon: 'run', test: (d) => d.exDays >= 1 },
     { id: 'w1', name: 'على الميزان', desc: 'سجّل وزنك أول مرة', icon: 'scale', test: (d) => d.weighIns >= 1 },
     { id: 'kg1', name: 'أول كيلو', desc: 'أول كيلو نحو هدفك', icon: 'star', test: (d) => d.kgDone >= 1 },
     { id: 'half', name: 'نص الطريق', desc: 'وصلت نص المسافة لهدفك', icon: 'target', test: (d) => d.progress >= 0.5 },
     { id: 'goal', name: 'البطل', desc: 'وصلت لوزنك المستهدف', icon: 'trophy', test: (d) => d.progress >= 1 },
     { id: 'save', name: 'كيلو موفّر', desc: 'وفّر 7,700 سعرة', icon: 'bolt', test: (d) => d.saved >= 7700 }
   ];
-  let earned = {};
-  try { earned = JSON.parse(localStorage.getItem('badges') || '{}') || {}; } catch (e) { earned = {}; }
-  let bestStreak = 0;
-  try { bestStreak = Number(localStorage.getItem('best-streak')) || 0; } catch (e) {}
+  let earned = store.get('badges', {}) || {};
+  let bestStreak = Number(store.get('best-streak', 0)) || 0;
+  let bestScore = Number(store.get('best-score', 0)) || 0;
+  let lastScore = null, lastTodayMet = null;
+  const MILESTONES = [3, 7, 14, 21, 30, 50, 75, 100];
 
-  function refreshMotivation(action) {
+  function refreshAll(action) {
     if (!currentS) return;
-    const st = dayStats();
-    const base = new Date(); base.setHours(12, 0, 0, 0);
-    const todayMet = metDay(st.meals[st.today]);
-    let streak = 0;
-    const c = new Date(base);
-    if (!todayMet) c.setDate(c.getDate() - 1);
-    while (streak < 2000 && metDay(st.meals[ds(c)])) { streak++; c.setDate(c.getDate() - 1); }
-    if (streak > bestStreak) { bestStreak = streak; try { localStorage.setItem('best-streak', String(bestStreak)); } catch (e) {} }
-    $('st-num').textContent = fmt(streak);
+    const { score } = renderToday();
+    const days = dayStats();
+    const si = streakInfo(days);
+    if (si.streak > bestStreak) { bestStreak = si.streak; store.set('best-streak', bestStreak); }
+    if (score > bestScore) { bestScore = score; store.set('best-score', bestScore); }
+
+    // streak view
+    $('st-num').textContent = fmt(si.streak);
     $('st-best').textContent = 'أفضل سلسلة: ' + fmt(bestStreak) + (bestStreak === 1 ? ' يوم' : ' أيام');
-    $('st-hint').textContent = todayMet
+    $('streak').classList.toggle('hot', si.streak > 0);
+    $('st-hint').textContent = si.todayMet
       ? 'اليوم محسوب في سلسلتك. كمّل كذا بكرة.'
-      : (streak ? 'سجّل وجباتك اليوم وخلك قريب من هدفك عشان ما تنقطع السلسلة.' : 'سجّل وجباتك وخلك قريب من هدفك اليومي، وتبدأ سلسلتك.');
-    $('streak').classList.toggle('hot', streak > 0);
+      : (si.streak ? 'سجّل أكلك اليوم وخلك قريب من هدفك عشان تكبر السلسلة.' : 'سجّل أكلك وخلك قريب من هدفك اليومي، وتبدأ سلسلتك.');
     let wk = '';
     for (let i = 6; i >= 0; i--) {
-      const x = new Date(base); x.setDate(x.getDate() - i);
-      const ok = metDay(st.meals[ds(x)]);
-      wk += '<div class="wd' + (ok ? ' ok' : '') + (i === 0 ? ' now' : '') + '" title="' + x.toLocaleDateString('ar-u-nu-latn', { weekday: 'long', day: 'numeric', month: 'long' }) + (ok ? ' · ملتزم' : '') + '"><i></i><span>' + DAYL[x.getDay()] + '</span></div>';
+      const x = addDays(si.base, -i);
+      const ok = si.isMet(x), fz = !ok && si.isFz(x);
+      wk += '<div class="wd' + (ok ? ' ok' : '') + (fz ? ' fz' : '') + (i === 0 ? ' now' : '') + '" title="' + x.toLocaleDateString('ar-u-nu-latn', { weekday: 'long', day: 'numeric', month: 'long' }) + '"><i>' + (fz ? ico('shield') : '') + '</i><span>' + DAYL[x.getDay()] + '</span></div>';
     }
     $('st-week').innerHTML = wk;
+    $('shields').innerHTML = [0, 1].map((i) => ico('shield', i < frz.n ? 'on' : '')).join('');
+    const toNext = 7 - (si.streak % 7);
+    $('sh-txt').innerHTML = '<b>درع السلسلة: ' + fmt(frz.n) + ' من 2.</b> إذا فاتك يوم، الدرع يحمي سلسلتك تلقائياً. تكسب درع كل 7 أيام التزام' + (frz.n < 2 ? '، باقي لك ' + fmt(toNext) + (toNext === 1 ? ' يوم' : ' أيام') + '.' : '.');
 
-    let saved = 0, mealsN = 0;
-    Object.keys(st.meals).forEach((k) => {
-      const m = st.meals[k];
-      mealsN += m.n;
-      if (k === st.today || !m.n) return;
-      saved += currentDir > 0 ? Math.max(0, m.total - currentTdee) : Math.max(0, currentTdee - m.total);
+    // progress stats: week bars, savings, heatmap
+    renderWeekBars(days, si);
+    let saved = 0, mealsN = 0, exDays = 0;
+    Object.keys(days).forEach((k) => {
+      const d = days[k];
+      mealsN += d.n;
+      if (d.ex > 0) exDays++;
+      if (k === todayStr() || !d.n) return;
+      const net = d.food - d.ex;
+      saved += currentDir > 0 ? Math.max(0, net - currentTdee) : Math.max(0, currentTdee - net);
     });
     saved = Math.round(saved);
-    $('saved').hidden = currentDir === 0;
-    if (currentDir !== 0) {
-      animateNum($('sv-num'), saved);
-      $('sv-lbl').textContent = currentDir < 0 ? 'سعرة وفّرتها من بداية الخطة' : 'سعرة زيادة لبناء جسمك';
-      $('sv-eq').innerHTML = currentDir < 0
-        ? 'يعني <b>' + fmt(saved / 550, 1) + '</b> صحن كبسة · <b>' + fmt(saved / 7700, 2) + '</b> كغ دهون'
-        : 'يعني <b>' + fmt(saved / 450, 1) + '</b> ساندويتش شاورما زيادة';
-    }
+    animateNum($('sv-num'), saved);
+    $('sv-lbl').textContent = currentDir > 0 ? 'سعرة زيادة لبناء جسمك' : 'سعرة وفّرتها من بداية الخطة';
+    $('sv-eq').innerHTML = currentDir > 0
+      ? 'يعني <b>' + fmt(saved / 450, 1) + '</b> ساندويتش شاورما زيادة'
+      : 'يعني <b>' + fmt(saved / 550, 1) + '</b> صحن كبسة · <b>' + fmt(saved / 7700, 2) + '</b> كغ دهون';
+    renderHeat(days, si);
 
+    // badges
     const ws = weightLog.map((e) => e.w);
     let kgDone = 0, progress = 0;
     if (ws.length && currentDir !== 0) {
       kgDone = currentDir < 0 ? currentS.w - Math.min(...ws) : Math.max(...ws) - currentS.w;
       progress = Math.max(0, Math.min(1, (currentS.w - ws[ws.length - 1]) / (currentS.w - currentS.goal)));
     }
-    const waterDays = Object.keys(st.waters).filter((k) => st.waters[k] >= waterGoal).length;
-    const data = { meals: mealsN, best: bestStreak, waterDays, weighIns: ws.length, kgDone, progress, saved };
+    const waterDays = Object.keys(days).filter((k) => days[k].water >= waterGoal).length;
+    const data = { meals: mealsN, best: bestStreak, waterDays, weighIns: ws.length, kgDone, progress, saved, exDays, bestScore, shield: !!frz.ever };
     const fresh = [];
     BADGES.forEach((b) => { if (!earned[b.id] && b.test(data)) { earned[b.id] = Date.now(); fresh.push(b.id); } });
-    if (fresh.length) { try { localStorage.setItem('badges', JSON.stringify(earned)); } catch (e) {} }
+    if (fresh.length) store.set('badges', earned);
     $('bd-count').textContent = fmt(BADGES.filter((b) => earned[b.id]).length) + ' من ' + fmt(BADGES.length);
     $('badges').innerHTML = BADGES.map((b) => '<div class="badge' + (earned[b.id] ? ' on' : '') + (action && fresh.indexOf(b.id) >= 0 ? ' pop' : '') + '"><div class="bi">' + ico(b.icon) + '</div><b>' + b.name + '</b><span>' + b.desc + '</span></div>').join('');
-    if (action && fresh.length) celebrate('شارة جديدة: ' + BADGES.filter((b) => fresh.indexOf(b.id) >= 0).map((b) => b.name).join('، '));
+
+    // celebrations (only after a viewer action)
+    if (si.used) celebrate('فاتك ' + (si.used === 1 ? 'يوم' : fmt(si.used) + ' أيام') + '، والدرع حمى سلسلتك', { calm: true });
+    if (action) {
+      if (si.todayMet && lastTodayMet === false && MILESTONES.indexOf(si.streak) >= 0) celebrate('سلسلة ' + fmt(si.streak) + ' أيام!', { big: true });
+      if (si.earnedFreeze) celebrate('كسبت درع حماية للسلسلة');
+      if (lastScore != null && lastScore < 90 && score >= 90) celebrate('يوم مثالي! ' + fmt(score) + ' نقطة');
+      if (fresh.length) celebrate('شارة جديدة: ' + BADGES.filter((b) => fresh.indexOf(b.id) >= 0).map((b) => b.name).join('، '));
+    }
+    lastScore = score; lastTodayMet = si.todayMet;
   }
 
+  function renderWeekBars(days, si) {
+    const W = 640, H = 210, L = 44, R = 12, T = 22, B = 30;
+    const vals = [];
+    for (let i = 6; i >= 0; i--) { const x = addDays(si.base, -i); const d = days[ds(x)]; vals.push({ x, d, i }); }
+    const max = Math.max(currentTarget * 1.35, ...vals.map((v) => (v.d ? v.d.food : 0)));
+    const y = (v) => T + (1 - v / max) * (H - T - B);
+    const slot = (W - L - R) / 7;
+    let out = '';
+    const step = niceStep(max, 4);
+    for (let v = 0; v <= max + 1e-6; v += step) {
+      out += '<line class="ax" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v) + '" y2="' + y(v) + '"/>';
+      out += '<text class="axt" x="' + (L - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + fmt(v) + '</text>';
+    }
+    let sum = 0, cnt = 0;
+    vals.forEach((v, idx) => {
+      const cx = W - R - (idx + 0.5) * slot; // oldest on the right (RTL)
+      const food = v.d ? v.d.food : 0;
+      const bw = Math.min(46, slot * 0.6);
+      if (v.d && v.d.n) {
+        sum += food; cnt++;
+        const cls = metDay(v.d) ? 'bar-ok' : 'bar-lg';
+        out += '<rect class="' + cls + (v.i === 0 ? ' bar-now' : '') + '" x="' + (cx - bw / 2).toFixed(1) + '" y="' + y(food).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + (y(0) - y(food)).toFixed(1) + '" rx="8"><title>' + fmt(food) + ' سعرة</title></rect>';
+        out += '<text class="bar-val" x="' + cx.toFixed(1) + '" y="' + (y(food) - 6).toFixed(1) + '" text-anchor="middle">' + fmt(food) + '</text>';
+      } else {
+        out += '<rect class="bar-lg" x="' + (cx - bw / 2).toFixed(1) + '" y="' + (y(0) - 3) + '" width="' + bw.toFixed(1) + '" height="3" rx="1.5"/>';
+      }
+      out += '<text class="axt" x="' + cx.toFixed(1) + '" y="' + (H - 10) + '" text-anchor="middle"' + (v.i === 0 ? ' style="fill:var(--fg);font-weight:600"' : '') + '>' + (v.i === 0 ? 'اليوم' : DAYL[v.x.getDay()]) + '</text>';
+    });
+    out += '<line class="gl" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(currentTarget) + '" y2="' + y(currentTarget) + '"/>';
+    $('wk-bars').innerHTML = out;
+    $('wk-avg').textContent = cnt ? 'المتوسط ' + fmt(Math.round(sum / cnt)) + ' سعرة' : 'ما فيه أيام مسجلة';
+  }
+
+  function renderHeat(days, si) {
+    const end = si.base;
+    const start = addDays(end, -(7 * 11 + end.getDay()));
+    let h = '', met = 0, logged = 0;
+    for (let x = new Date(start); x <= end; x = addDays(x, 1)) {
+      const k = ds(x), d = days[k];
+      const ok = metDay(d), fz = !ok && frozenDays.indexOf(k) >= 0;
+      if (ok) met++;
+      if (d && d.n) logged++;
+      const cls = ok ? 'h2' : fz ? 'hf' : (d && d.n ? 'h1' : '');
+      h += '<i class="' + cls + (k === todayStr() ? ' now' : '') + '" title="' + x.toLocaleDateString('ar-u-nu-latn', { day: 'numeric', month: 'long' }) + (ok ? ' · ضمن هدفك' : fz ? ' · محمي بالدرع' : d && d.n ? ' · سجلت' : '') + '"></i>';
+    }
+    $('heat').innerHTML = h;
+    $('heat-sum').textContent = fmt(met) + ' يوم ضمن هدفك · ' + fmt(logged) + ' يوم مسجل';
+  }
+
+  // ---------- celebrations ----------
   let toastTimer = 0, toastMsgs = [], confettiOn = false;
-  function celebrate(msg) {
+  function celebrate(msg, opt) {
+    opt = opt || {};
     const t = $('toast');
     toastMsgs.push(msg);
     t.textContent = toastMsgs.join(' · ');
+    t.classList.toggle('calm', !!opt.calm && toastMsgs.length === 1);
     t.hidden = false;
     t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => { t.hidden = true; toastMsgs = []; }, 3800);
-    confetti();
+    if (!opt.calm) confetti(opt.big ? 260 : 140);
   }
-  function confetti() {
+  function confetti(count) {
     if (reduceMotion || confettiOn) return;
     confettiOn = true;
     const cv = document.createElement('canvas');
-    cv.className = 'confetti';
-    cv.setAttribute('aria-hidden', 'true');
+    cv.className = 'confetti'; cv.setAttribute('aria-hidden', 'true');
     document.body.appendChild(cv);
     const dpr = window.devicePixelRatio || 1, W = window.innerWidth, H = window.innerHeight;
     cv.width = W * dpr; cv.height = H * dpr;
-    const g = cv.getContext('2d');
-    g.scale(dpr, dpr);
+    const g = cv.getContext('2d'); g.scale(dpr, dpr);
     const cs = getComputedStyle(root);
-    const cols = ['--lime', '--cyan', '--pink', '--flame'].map((v) => cs.getPropertyValue(v).trim()).concat(['#FFFFFF']);
-    const ps = Array.from({ length: 150 }, () => ({
-      x: W / 2 + (Math.random() - 0.5) * W * 0.4, y: H * 0.4,
-      vx: (Math.random() - 0.5) * 14, vy: -Math.random() * 13 - 5,
+    const cols = ['--lime', '--cyan', '--pink', '--flame', '--fy'].map((v) => cs.getPropertyValue(v).trim()).concat(['#FFFFFF']);
+    const ps = Array.from({ length: count }, () => ({
+      x: W / 2 + (Math.random() - 0.5) * W * 0.4, y: H * 0.42,
+      vx: (Math.random() - 0.5) * 15, vy: -Math.random() * 14 - 5,
       s: Math.random() * 7 + 5, r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.35,
       c: cols[Math.floor(Math.random() * cols.length)]
     }));
     const t0 = performance.now();
     const frame = (t) => {
-      const k = (t - t0) / 2000;
+      const k = (t - t0) / 2100;
       g.clearRect(0, 0, W, H);
       ps.forEach((p) => {
         p.vy += 0.32; p.vx *= 0.99; p.x += p.vx; p.y += p.vy; p.r += p.vr;
@@ -1176,12 +1329,219 @@ footer { color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
     requestAnimationFrame(frame);
   }
 
-  const onForm = () => { render(); refreshMotivation(false); };
+  // ---------- actions ----------
+  function addMeal(name, kcal, extra) {
+    const before = totals();
+    mealLog.push(Object.assign({ name, kcal, t: Date.now() }, extra || {}));
+    saveMeals();
+    const budget = currentTarget + before.ex, lo = 0.9 * budget, hi = 1.05 * budget;
+    const after = before.food + kcal;
+    if (budget && before.food < lo && after >= lo && after <= hi) celebrate('وصلت هدف اليوم بالضبط!');
+    refreshAll(true);
+  }
+  $('quick').addEventListener('click', (e) => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    const q = QUICK[+b.dataset.i];
+    addMeal(q[0], q[1], { p: q[2], c: q[3] });
+    flash(b);
+    setMsg('m-msg', 'أضيفت: ' + q[0] + ' (' + fmt(q[1]) + ' سعرة)');
+  });
+  $('m-add').addEventListener('click', () => {
+    const n = $('m-name').value.trim().slice(0, 60);
+    const k = Math.round(parseFloat($('m-kcal').value));
+    if (!n || !isFinite(k) || k < 1 || k > 5000) { setMsg('m-msg', 'اكتب اسم الأكلة وسعراتها (من 1 إلى 5000).', true); return; }
+    addMeal(n, k);
+    $('m-name').value = ''; $('m-kcal').value = '';
+    setMsg('m-msg', 'أضيفت: ' + n + ' (' + fmt(k) + ' سعرة)');
+  });
+  $('m-kcal').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $('m-add').click(); } });
+  $('ex-chips').addEventListener('click', (e) => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    const x = EX[+b.dataset.i], kcal = exKcal(x);
+    exLog.push({ name: x[0], kcal, t: Date.now() });
+    saveEx(); flash(b);
+    setMsg('ex-msg', 'أضيف: ' + x[0] + '، وزاد هدفك اليوم ' + fmt(kcal) + ' سعرة');
+    refreshAll(true);
+  });
+  $('log-list').addEventListener('click', (e) => {
+    const b = e.target.closest('.xbtn'); if (!b) return;
+    if (b.dataset.k === 'e') { exLog.splice(+b.dataset.i, 1); saveEx(); }
+    else { mealLog.splice(+b.dataset.i, 1); saveMeals(); }
+    refreshAll(false);
+  });
+  $('cups').addEventListener('click', (e) => {
+    const b = e.target.closest('.cup'); if (!b) return;
+    const i = +b.dataset.i, prev = waterCount;
+    waterCount = (i + 1 === waterCount) ? i : i + 1;
+    saveWater();
+    if (prev < waterGoal && waterCount >= waterGoal) celebrate('كمّلت ماء اليوم!');
+    refreshAll(true);
+  });
+  $('vt-left').addEventListener('click', () => { calView = 'left'; store.set('cal-view', calView); renderToday(); });
+  $('vt-eaten').addEventListener('click', () => { calView = 'eaten'; store.set('cal-view', calView); renderToday(); });
+
+  $('w-add').addEventListener('click', () => {
+    const v = parseFloat($('w-today').value);
+    if (!isFinite(v) || v < 35 || v > 300) { $('w-status').textContent = 'اكتب وزنك بين 35 و300 كغ.'; return; }
+    const prev = weightLog.length ? weightLog[weightLog.length - 1].w : null;
+    const nw = Math.round(v * 10) / 10, d = dayStart(Date.now());
+    weightLog = weightLog.filter((e) => e.d !== d);
+    weightLog.push({ d, w: nw });
+    weightLog.sort((a, b) => a.d - b.d);
+    saveW(); $('w-today').value = '';
+    render();
+    if (prev != null && currentDir < 0 && nw < prev) celebrate('نزلت ' + fmt(prev - nw, 1) + ' كغ عن آخر وزن!');
+    if (prev != null && currentDir > 0 && nw > prev) celebrate('زاد وزنك ' + fmt(nw - prev, 1) + ' كغ نحو هدفك!');
+    refreshAll(true);
+  });
+  $('w-today').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $('w-add').click(); } });
+  $('w-list').addEventListener('click', (e) => {
+    const b = e.target.closest('.xbtn'); if (!b) return;
+    weightLog.splice(+b.dataset.i, 1); saveW(); render(); refreshAll(false);
+  });
+  let resetArmed = false, resetTimer = 0;
+  $('w-reset').addEventListener('click', () => {
+    const b = $('w-reset');
+    const disarm = () => { resetArmed = false; b.textContent = 'ابدأ خطة جديدة من اليوم'; b.classList.remove('confirm'); };
+    if (!resetArmed) {
+      resetArmed = true; b.textContent = 'اضغط مرة ثانية لمسح سجل الوزن والبدء من اليوم'; b.classList.add('confirm');
+      clearTimeout(resetTimer); resetTimer = setTimeout(disarm, 5000);
+      return;
+    }
+    clearTimeout(resetTimer); disarm();
+    planStart = dayStart(Date.now()); weightLog = []; saveW(); render(); refreshAll(false);
+    $('w-status').textContent = 'بدأت خطة جديدة من اليوم. حدّث وزن البداية في «خطتك».';
+  });
+
+  // ---------- meal photo (Claude only) ----------
+  const samplePromise = window.claude ? window.claude.use('sample').catch(() => null) : Promise.resolve(null);
+  samplePromise.then((s) => {
+    const pill = $('snap-pill');
+    if (!s) { $('snap').hidden = true; return; } if (!s) { pill.textContent = 'غير متاح في هذا العرض'; pill.classList.add('off'); return; }
+    s.limits().then((l) => { if (!l || !l.images) { pill.textContent = 'الصور غير متاحة هنا'; pill.classList.add('off'); } }).catch(() => {});
+  });
+  let snapFile = null, snapResult = null, ctl = null;
+  function setFile(f) {
+    if (!f || !/^image\//.test(f.type)) { setMsg('snap-msg', 'اختر ملف صورة مثل JPG أو PNG.', true); return; }
+    snapFile = f;
+    const img = $('snap-img');
+    if (img.dataset.url) URL.revokeObjectURL(img.dataset.url);
+    const u = URL.createObjectURL(f); img.src = u; img.dataset.url = u; img.hidden = false;
+    $('drop-empty').hidden = true; $('snap-out').hidden = true;
+    const go = $('snap-go'); go.disabled = false; go.classList.add('primary');
+    setMsg('snap-msg', 'الصورة جاهزة. اضغط «احسب السعرات».');
+  }
+  ['snap-cam', 'snap-pick'].forEach((id) => $(id).addEventListener('change', (e) => { setFile(e.target.files[0]); e.target.value = ''; }));
+  const drop = $('drop');
+  drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+  drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('over'); setFile(e.dataTransfer.files[0]); });
+  document.addEventListener('paste', (e) => {
+    const f = Array.from((e.clipboardData && e.clipboardData.files) || []).find((x) => /^image\//.test(x.type));
+    if (f) setFile(f);
+  });
+  const errCopy = {
+    not_granted: 'لم يُسمح للصفحة باستخدام Claude، لذلك لا يمكن تحليل الصور.',
+    sampling_disabled: 'Claude غير متاح لهذا الحساب.',
+    images_unavailable: 'إرسال الصور غير متاح في هذا العرض.',
+    image_rejected: 'تعذّرت قراءة الصورة. جرّب صورة JPG أو PNG أصغر.',
+    rate_limited: 'طلبات كثيرة في وقت قصير. حاول بعد دقيقة.',
+    session_expired: 'انتهت الجلسة. سجّل الدخول من جديد ثم حاول.',
+    invalid_json: 'لم تكتمل الإجابة. اضغط «احسب السعرات» مرة أخرى.',
+    refused: 'تعذّر تحليل هذه الصورة. جرّب صورة أخرى للطبق.'
+  };
+  $('snap-stop').addEventListener('click', () => { if (ctl) ctl.abort(); });
+  $('snap-go').addEventListener('click', async () => {
+    if (!snapFile) return;
+    const go = $('snap-go');
+    go.disabled = true;
+    setMsg('snap-msg', 'جارٍ تحليل الصورة… قد يستغرق ذلك حتى دقيقة.');
+    const sample = await samplePromise;
+    if (!sample) { setMsg('snap-msg', 'تحليل الصور يعمل فقط عند فتح الصفحة داخل Claude.', true); go.disabled = false; return; }
+    $('snap-stop').hidden = false;
+    ctl = new AbortController();
+    const goalTxt = currentDir < 0 ? 'lose weight' : currentDir > 0 ? 'gain weight' : 'maintain weight';
+    const note = $('snap-note').value.trim().slice(0, 300);
+    const prompt = [
+      'You estimate the nutrition of a meal from a photo for a calorie-tracking app.',
+      'Look at the attached photo. List each visible food or drink, estimate its portion (household measure plus grams), and estimate calories, protein, carbohydrates and fat for that portion.',
+      'When a dish is regional (for example kabsa, mandi, hummus, shawarma, mutabbaq), use typical Gulf and Middle-Eastern recipes, and count visible oil, ghee, sauces and sweet drinks.',
+      'Also rate each item by calorie density: "g" under 1 kcal per gram, "y" 1 to 2.4, "o" above 2.4.',
+      'Viewer note about the meal (may be empty, trust it for portions): "' + note + '"',
+      'Viewer goal: ' + goalTxt + '. Daily calorie target: ' + currentTarget + ' kcal.',
+      'Reply with only this JSON. Write every text value in Arabic:',
+      '{"is_food": true, "meal_name": "short meal name", "items": [{"name": "item", "portion": "كوب واحد (~150 غ)", "kcal": 0, "protein_g": 0, "carbs_g": 0, "fat_g": 0, "density": "g|y|o"}], "confidence": "high|medium|low", "tip": "one short practical sentence for this goal"}',
+      'If the photo shows no food or drink, reply {"is_food": false, "items": []}.'
+    ].join('\n');
+    try {
+      const r = await sample.json(prompt, { images: snapFile, signal: ctl.signal });
+      if (!r || r.is_food === false || !Array.isArray(r.items) || !r.items.length) {
+        setMsg('snap-msg', 'لم أتعرف على طعام في هذه الصورة. جرّب صورة أوضح للطبق من الأعلى.', true);
+        return;
+      }
+      const items = r.items.slice(0, 20).map((it) => ({
+        name: String(it.name || 'صنف'), portion: String(it.portion || ''),
+        kcal: num(it.kcal), p: num(it.protein_g), c: num(it.carbs_g), f: num(it.fat_g),
+        d: ['g', 'y', 'o'].indexOf(it.density) >= 0 ? it.density : 'y'
+      }));
+      const sum = (k) => items.reduce((a, it) => a + it[k], 0);
+      const kc = sum('kcal');
+      const dens = { g: 0, y: 0, o: 0 }; items.forEach((it) => { dens[it.d] += it.kcal; });
+      const main = Object.keys(dens).sort((a, b) => dens[b] - dens[a])[0];
+      snapResult = { name: String(r.meal_name || 'وجبة'), items, kcal: kc, p: sum('p'), c: sum('c'), f: sum('f'), color: main, conf: String(r.confidence || ''), tip: String(r.tip || '') };
+      showResult();
+      setMsg('snap-msg', '');
+    } catch (e) {
+      if (e && e.code === 'cancelled') setMsg('snap-msg', 'أوقفت التحليل.');
+      else setMsg('snap-msg', (e && errCopy[e.code]) || 'حدث خطأ مؤقت. حاول مرة أخرى.', true);
+    } finally {
+      go.disabled = !snapFile; $('snap-stop').hidden = true; ctl = null;
+    }
+  });
+  function showResult() {
+    const r = snapResult, out = $('snap-out');
+    const conf = { high: 'عالية', medium: 'متوسطة', low: 'منخفضة' }[r.conf] || 'متوسطة';
+    const pct = currentTarget ? Math.round(r.kcal / currentTarget * 100) : 0;
+    out.innerHTML =
+      '<div class="snap-total"><div><div class="lbl">' + esc(r.name) + '</div><span class="bigk">' + fmt(r.kcal) + '</span> سعرة</div><span class="pill">دقة التقدير: ' + conf + '</span></div>' +
+      '<p class="hint">' + fmt(pct) + '% من هدفك اليومي · بروتين ' + fmt(r.p) + ' غ · كربوهيدرات ' + fmt(r.c) + ' غ · دهون ' + fmt(r.f) + ' غ</p>' +
+      '<div class="tbl"><table><thead><tr><th>الصنف</th><th>الكمية</th><th>سعرات</th><th>بروتين</th></tr></thead><tbody>' +
+      r.items.map((it) => '<tr><td><i class="fd ' + it.d + '"></i> ' + esc(it.name) + '</td><td>' + esc(it.portion) + '</td><td>' + fmt(it.kcal) + '</td><td>' + fmt(it.p) + ' غ</td></tr>').join('') +
+      '</tbody></table></div>' +
+      (r.tip ? '<p class="hint">' + esc(r.tip) + '</p>' : '') +
+      '<div><button type="button" class="btn primary" id="snap-add">أضف إلى سجل اليوم</button></div>';
+    out.hidden = false;
+  }
+  $('snap-out').addEventListener('click', (e) => {
+    const b = e.target.closest('#snap-add'); if (!b || !snapResult) return;
+    addMeal(snapResult.name, snapResult.kcal, { p: snapResult.p, c: snapResult.color });
+    b.disabled = true; b.textContent = 'أضيفت إلى سجل اليوم';
+  });
+
+  // ---------- routing ----------
+  const VIEWS = ['today', 'plan', 'progress', 'awards'];
+  function route(fromNav) {
+    let v = (location.hash || '').slice(1);
+    if (VIEWS.indexOf(v) < 0) v = 'today';
+    VIEWS.forEach((n) => { $('v-' + n).hidden = n !== v; });
+    document.querySelectorAll('.tabs a').forEach((a) => {
+      const on = a.dataset.v === v;
+      a.classList.toggle('on', on);
+      if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+    if (v === 'progress') { chartDrawn = false; drawChart(); }
+    if (fromNav) window.scrollTo(0, 0);
+  }
+  window.addEventListener('hashchange', () => route(true));
+
+  // ---------- boot ----------
+  const onForm = () => { if (render()) refreshAll(false); };
   $('f').addEventListener('input', onForm);
   $('f').addEventListener('change', onForm);
   $('f').addEventListener('submit', (e) => e.preventDefault());
   render();
-  refreshMotivation(false);
+  refreshAll(false);
+  route(false);
 })();
 </script>
 
